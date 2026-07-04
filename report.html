@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Java AI Frameworks — Project Report</title>
+  <style>
+    :root[data-theme="dark"] {
+      --bg: #0d1117;
+      --bg2: #161b22;
+      --bg3: #21262d;
+      --bg4: #30363d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text2: #8b949e;
+      --text3: #6e7681;
+      --accent: #58a6ff;
+      --accent2: #79c0ff;
+      --green: #3fb950;
+      --purple: #bc8cff;
+      --orange: #ffa657;
+      --red: #f85149;
+      --yellow: #d29922;
+      --pink: #ff7b72;
+      --teal: #39d353;
+      --card-glow: rgba(88,166,255,0.08);
+      --gradient1: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+      --hero-gradient: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a1f3a 100%);
+    }
+    :root[data-theme="light"] {
+      --bg: #ffffff;
+      --bg2: #f6f8fa;
+      --bg3: #eaeef2;
+      --bg4: #d0d7de;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --text2: #636c76;
+      --text3: #8c959f;
+      --accent: #0969da;
+      --accent2: #218bff;
+      --green: #1a7f37;
+      --purple: #8250df;
+      --orange: #bc4c00;
+      --red: #d1242f;
+      --yellow: #9a6700;
+      --pink: #cf222e;
+      --teal: #0f6a30;
+      --card-glow: rgba(9,105,218,0.06);
+      --gradient1: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
+      --hero-gradient: linear-gradient(135deg, #f0f6ff 0%, #dbeafe 50%, #ede9fe 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+    .nav-brand {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-brand span { font-size: 20px; }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text2);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--bg3); }
+    .nav-actions { display: flex; gap: 8px; align-items: center; }
+    .theme-toggle {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { color: var(--text); background: var(--bg4); }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--hero-gradient);
+      padding: 80px 24px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at center, rgba(88,166,255,0.05) 0%, transparent 60%);
+      animation: pulse 8s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.3);
+      color: var(--accent2);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--text2);
+      max-width: 640px;
+      margin: 0 auto 40px;
+    }
+    .hero-links {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: var(--bg3); transform: translateY(-1px); }
+
+    /* ── STATS ── */
+    .stats-section { padding: 48px 24px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .stats-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px var(--card-glow);
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--card-accent, var(--accent));
+    }
+    .stat-number {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--card-accent, var(--accent));
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label { font-size: 12px; color: var(--text2); font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* ── MAIN CONTENT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+
+    section { margin-bottom: 64px; }
+
+    .section-header { margin-bottom: 28px; }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .section-title .icon { font-size: 22px; }
+    .section-desc { color: var(--text2); font-size: 15px; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--card-glow); }
+
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .card-grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+
+    .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .card-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-title { font-size: 15px; font-weight: 700; }
+    .card-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+    /* ── PROVIDER CARDS ── */
+    .provider-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .provider-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .provider-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px var(--card-glow); }
+    .provider-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--provider-color, var(--accent));
+    }
+    .provider-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .provider-route {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      background: rgba(88,166,255,0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .provider-key {
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .key-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .key-free { background: rgba(63,185,80,0.15); color: var(--green); }
+    .key-paid { background: rgba(255,166,87,0.15); color: var(--orange); }
+    .key-local { background: rgba(188,140,255,0.15); color: var(--purple); }
+
+    .endpoint-list { list-style: none; }
+    .endpoint-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .endpoint-item:last-child { border-bottom: none; }
+    .method-badge {
+      font-family: 'SF Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      letter-spacing: 0.5px;
+    }
+    .method-post { background: rgba(63,185,80,0.15); color: var(--green); }
+    .method-get { background: rgba(88,166,255,0.15); color: var(--accent); }
+    .method-delete { background: rgba(248,81,73,0.15); color: var(--red); }
+    .endpoint-path { font-family: 'SF Mono', monospace; color: var(--text2); font-size: 12px; }
+    .endpoint-desc { color: var(--text); flex: 1; }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+    .code-lang { font-size: 11px; color: var(--text3); font-family: monospace; letter-spacing: 0.5px; }
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { color: var(--text); background: var(--bg4); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+    pre {
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    code { color: var(--text); }
+    .kw { color: var(--purple); }
+    .str { color: var(--green); }
+    .cm { color: var(--text3); }
+    .an { color: var(--yellow); }
+    .fn { color: var(--accent); }
+    .nm { color: var(--orange); }
+
+    /* ── TABLE ── */
+    .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: var(--bg3); }
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg3); }
+    .mono { font-family: 'SF Mono', monospace; font-size: 12px; color: var(--accent); }
+    .check { color: var(--green); font-size: 16px; }
+    .cross { color: var(--red); font-size: 16px; }
+
+    /* ── FEATURE COMPARISON ── */
+    .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .comparison-grid { grid-template-columns: 1fr; } }
+    .fw-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .fw-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+    .fw-logo {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .fw-title { font-size: 18px; font-weight: 700; }
+    .fw-version { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .fw-features { list-style: none; }
+    .fw-feature {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .fw-feature:last-child { border-bottom: none; }
+    .fw-feature .dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── ARCHITECTURE TREE ── */
+    .tree {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 2;
+      overflow-x: auto;
+    }
+    .tree-root { color: var(--accent); font-weight: 700; }
+    .tree-branch { color: var(--text3); }
+    .tree-pkg { color: var(--purple); font-weight: 600; }
+    .tree-file { color: var(--text2); }
+    .tree-comment { color: var(--text3); font-style: italic; }
+    .tree-provider { color: var(--green); font-weight: 600; }
+
+    /* ── ACCORDION ── */
+    .accordion { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .accordion-item { border-bottom: 1px solid var(--border); }
+    .accordion-item:last-child { border-bottom: none; }
+    .accordion-header {
+      width: 100%;
+      background: var(--bg2);
+      border: none;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      text-align: left;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .accordion-header:hover { background: var(--bg3); }
+    .accordion-header .acc-left { display: flex; align-items: center; gap: 10px; }
+    .acc-chevron { transition: transform 0.2s; font-size: 12px; }
+    .accordion-item.open .acc-chevron { transform: rotate(180deg); }
+    .accordion-body { display: none; padding: 20px; background: var(--bg); }
+    .accordion-item.open .accordion-body { display: block; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-blue { background: rgba(88,166,255,0.15); color: var(--accent); }
+    .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+    .badge-purple { background: rgba(188,140,255,0.15); color: var(--purple); }
+    .badge-orange { background: rgba(255,166,87,0.15); color: var(--orange); }
+
+    /* ── TIMELINE ── */
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px; top: 0; bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item { position: relative; margin-bottom: 28px; }
+    .timeline-dot {
+      position: absolute;
+      left: -26px; top: 4px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg);
+    }
+    .timeline-date { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+    .timeline-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .timeline-desc { font-size: 13px; color: var(--text2); }
+
+    /* ── TECH STACK ── */
+    .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+    .tech-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .tech-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--card-glow); }
+    .tech-icon { font-size: 28px; margin-bottom: 8px; }
+    .tech-name { font-size: 13px; font-weight: 700; }
+    .tech-version { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+    /* ── SEARCH ── */
+    .search-box {
+      width: 100%; padding: 10px 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { outline: none; border-color: var(--accent); }
+    .search-box::placeholder { color: var(--text3); }
+
+    /* ── HIGHLIGHT BOX ── */
+    .highlight-box {
+      border: 1px solid;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 12px 0;
+      display: flex;
+      gap: 12px;
+    }
+    .highlight-box.info { border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.05); }
+    .highlight-box.warning { border-color: rgba(209,151,34,0.3); background: rgba(209,151,34,0.05); }
+    .highlight-box.success { border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.05); }
+    .highlight-icon { font-size: 18px; flex-shrink: 0; }
+    .highlight-text { font-size: 13px; color: var(--text2); }
+    .highlight-text strong { color: var(--text); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--text3);
+      font-size: 13px;
+      background: var(--bg2);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
+      .card-grid, .card-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate { animation: fadeInUp 0.5s ease forwards; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap { margin: 8px 0; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    .progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+    /* ── BACK TO TOP ── */
+    .back-to-top {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: all 0.2s;
+      z-index: 99;
+    }
+    .back-to-top:hover { transform: translateY(-2px); }
+    .back-to-top.visible { display: flex; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand"><span>☕</span> Java AI Frameworks</div>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#springai-core">Spring AI Core</a></li>
+    <li><a href="#springai-providers">Spring AI Providers</a></li>
+    <li><a href="#langchain4j">LangChain4j</a></li>
+    <li><a href="#comparison">Comparison</a></li>
+    <li><a href="#stack">Stack</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a class="btn btn-outline" href="https://github.com/PandurangGG/javaspringai" target="_blank">
+      ⑂ GitHub
+    </a>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">☕ Java · Spring Boot 3.3.4</div>
+  <h1>Java AI Frameworks<br>Integration Project</h1>
+  <p>A living reference for every major Java AI library — two frameworks, nine providers, 73 API endpoints, all in one running application.</p>
+  <div class="hero-links">
+    <a class="btn btn-primary" href="http://localhost:8080/swagger-ui/index.html" target="_blank">🔗 Open Swagger UI</a>
+    <a class="btn btn-outline" href="#overview">📖 View Report</a>
+    <a class="btn btn-outline" href="https://github.com/PandurangGG/javaspringai" target="_blank">⑂ Source Code</a>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-card" style="--card-accent: var(--accent)">
+      <div class="stat-number" data-count="45">0</div>
+      <div class="stat-label">Java Source Files</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--green)">
+      <div class="stat-number" data-count="73">0</div>
+      <div class="stat-label">REST Endpoints</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--purple)">
+      <div class="stat-number" data-count="2">0</div>
+      <div class="stat-label">AI Frameworks</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--orange)">
+      <div class="stat-number" data-count="9">0</div>
+      <div class="stat-label">AI Providers</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--pink)">
+      <div class="stat-number" data-count="12">0</div>
+      <div class="stat-label">Controllers</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--teal)">
+      <div class="stat-number" data-count="14">0</div>
+      <div class="stat-label">Streaming Endpoints</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--yellow)">
+      <div class="stat-number" data-count="15">0</div>
+      <div class="stat-label">AI Tool Functions</div>
+    </div>
+    <div class="stat-card" style="--card-accent: var(--accent2)">
+      <div class="stat-number" data-count="4">0</div>
+      <div class="stat-label">Typed Output Models</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="container">
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🏗️</span> Architecture Overview</div>
+      <p class="section-desc">Every package folder is named to tell you exactly which library and provider it contains.</p>
+    </div>
+
+    <div class="tree">
+<span class="tree-root">com.example</span>
+<span class="tree-branch">│</span>
+<span class="tree-branch">├── </span><span class="tree-pkg">agent/</span>                    <span class="tree-comment">← Spring AI + Anthropic Claude  (PRIMARY — 9 controllers)</span>
+<span class="tree-branch">│   ├── </span><span class="tree-file">config/</span>               <span class="tree-comment">OpenAPI / Swagger configuration</span>
+<span class="tree-branch">│   ├── </span><span class="tree-file">model/</span>                <span class="tree-comment">4 typed Java records for structured output</span>
+<span class="tree-branch">│   ├── </span><span class="tree-file">tools/</span>                <span class="tree-comment">15 @Tool functions the AI can call</span>
+<span class="tree-branch">│   ├── </span><span class="tree-file">service/</span>              <span class="tree-comment">7 services (agent, streaming, structured, templates...)</span>
+<span class="tree-branch">│   └── </span><span class="tree-file">controller/</span>           <span class="tree-comment">9 REST controllers</span>
+<span class="tree-branch">│</span>
+<span class="tree-branch">├── </span><span class="tree-pkg">springai/</span>                 <span class="tree-comment">← Spring AI — same API, 3 additional providers</span>
+<span class="tree-branch">│   ├── </span><span class="tree-provider">openai/</span>               <span class="tree-comment">OpenAI GPT-4o-mini    → /api/springai/openai/*</span>
+<span class="tree-branch">│   ├── </span><span class="tree-provider">ollama/</span>               <span class="tree-comment">Ollama (local, free)  → /api/springai/ollama/*</span>
+<span class="tree-branch">│   └── </span><span class="tree-provider">mistral/</span>              <span class="tree-comment">Mistral AI            → /api/springai/mistral/*</span>
+<span class="tree-branch">│</span>
+<span class="tree-branch">└── </span><span class="tree-pkg">langchain4j/</span>              <span class="tree-comment">← LangChain4j — alternative framework, 5 providers</span>
+    <span class="tree-branch">├── </span><span class="tree-provider">openai/</span>               <span class="tree-comment">OpenAI             → /api/langchain4j/openai/*</span>
+    <span class="tree-branch">├── </span><span class="tree-provider">anthropic/</span>            <span class="tree-comment">Anthropic Claude   → /api/langchain4j/anthropic/*</span>
+    <span class="tree-branch">├── </span><span class="tree-provider">ollama/</span>               <span class="tree-comment">Ollama (local)     → /api/langchain4j/ollama/*</span>
+    <span class="tree-branch">├── </span><span class="tree-provider">gemini/</span>               <span class="tree-comment">Google Gemini      → /api/langchain4j/gemini/*</span>
+    <span class="tree-branch">└── </span><span class="tree-provider">mistral/</span>              <span class="tree-comment">Mistral AI         → /api/langchain4j/mistral/*</span>
+    </div>
+
+    <div class="highlight-box info" style="margin-top:20px">
+      <span class="highlight-icon">💡</span>
+      <div class="highlight-text">
+        <strong>Why multiple providers coexist without conflicts:</strong> Spring AI creates typed beans per provider (e.g. <code>OpenAiChatModel</code>, <code>AnthropicChatModel</code>). LangChain4j uses explicit <code>@Qualifier</code> names (<code>lc4jOpenAiChatModel</code>, etc.). Services inject specific types — no <code>@Primary</code> needed.
+      </div>
+    </div>
+  </section>
+
+  <!-- SPRING AI CORE -->
+  <section id="springai-core">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🌱</span> Spring AI + Anthropic Claude — Core</div>
+      <p class="section-desc">The flagship integration. Covers every meaningful Spring AI 1.0.0 feature across 9 controllers.</p>
+    </div>
+
+    <div class="accordion">
+
+      <div class="accordion-item open">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-blue">9 endpoints</span>
+            Agent Controller — <code style="font-size:12px;color:var(--accent)">/api/agent</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">The flagship controller. Autonomous tool-calling with persistent conversation memory.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">Chat with the AI agent — it autonomously decides which tools to call, chains multiple tools, and remembers conversation history across turns.</span></li>
+            <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/agent/ping</span><span style="margin-left:8px;color:var(--text2);font-size:12px">Health check</span></li>
+          </ul>
+          <div class="highlight-box success" style="margin-top:16px">
+            <span class="highlight-icon">⭐</span>
+            <div class="highlight-text">The agent doesn't just answer — it decides when to call tools, chains them together, and maintains conversation memory across HTTP requests via session IDs.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-green">2 endpoints</span>
+            Stream Controller — <code style="font-size:12px;color:var(--accent)">/api/stream</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Real-time token streaming over Server-Sent Events (SSE). No waiting for the full response.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/api/stream/chat</span> — Streams tokens as they arrive</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/api/stream/chat/custom</span> — Streaming with a custom system prompt</span></li>
+          </ul>
+          <div class="code-block" style="margin-top:16px">
+            <div class="code-header"><span class="code-lang">java — Spring AI streaming pattern</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code><span class="kw">return</span> chatClient
+    .prompt()
+    .user(message)
+    .stream()
+    .content()  <span class="cm">// returns Flux&lt;String&gt; — each element is one token</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-purple">4 endpoints</span>
+            Structured Output — <code style="font-size:12px;color:var(--accent)">/api/structured</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Turns AI responses into proper Java objects — no JSON parsing code needed.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/sentiment</span> → <code>SentimentResult</code> — label, confidence, reasoning, highlights</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/extract-entities</span> → <code>EntityExtractionResult</code> — people, places, orgs, dates</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/summarize</span> → <code>SummaryResult</code> — title, summary, key points, reading time</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/code-review</span> → <code>CodeReviewResult</code> — language, score, issues, improved code</span></li>
+          </ul>
+          <div class="code-block" style="margin-top:16px">
+            <div class="code-header"><span class="code-lang">java — .entity() auto-deserializes</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code><span class="kw">return</span> chatClient
+    .prompt()
+    .user(message)
+    .call()
+    .entity(SentimentResult.<span class="kw">class</span>); <span class="cm">// Spring AI appends JSON schema, deserializes automatically</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-orange">5 endpoints</span>
+            Prompt Templates — <code style="font-size:12px;color:var(--accent)">/api/template</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/render</span> — Fill any template with variables at runtime</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/translate</span> — Translate text to any language</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/email</span> — Generate professional email from bullet points</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/explain</span> — Explain a concept at a given complexity level</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/generate-tests</span> — Generate JUnit tests for any code snippet</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-blue">4 endpoints</span>
+            Multimodal (Vision) — <code style="font-size:12px;color:var(--accent)">/api/multimodal</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Claude reads images — analyze, describe, OCR, compare.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/analyze</span> — Ask any question about an image URL</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/describe</span> — Generate a detailed image description</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/extract-text</span> — OCR: extract text from an image</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/compare</span> — Compare two images and explain differences</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-green">16 endpoints</span>
+            Tools — <code style="font-size:12px;color:var(--accent)">/api/tools</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">All 15 AI-callable tool functions also exposed as direct REST endpoints for testing.</p>
+          <div class="card-grid-3">
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">📅 Date/Time</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🧮 Calculator</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">📝 Notes (CRUD)</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🔍 Web Search</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🔤 Text Transform</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">📊 Word Count</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🔐 Base64 En/Decode</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🆔 UUID Generator</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🎲 Random Number</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🌡️ Temp Converter</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">🖥️ System Info</div>
+            <div style="padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;font-size:13px">📁 Directory List</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-purple">5 endpoints</span>
+            Model Config — <code style="font-size:12px;color:var(--accent)">/api/model-config</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Override model parameters per request — no restart needed.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/chat</span> — Full custom options: temperature, maxTokens, model name</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/creative</span> — Temperature 0.95: imaginative, varied output</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/precise</span> — Temperature 0.1: deterministic, factual</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/fast</span> — Switches to claude-haiku for low latency</span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/with-persona</span> — Dynamic system prompt: role + language + style</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-orange">3 endpoints</span>
+            Conversation Memory — <code style="font-size:12px;color:var(--accent)">/api/conversation</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Multiple isolated chat sessions — each user gets their own conversation history.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/{sessionId}/chat</span> — Chat within a named session with preserved history</span></li>
+            <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc"><span class="endpoint-path">/sessions</span> — List all active session IDs</span></li>
+            <li class="endpoint-item"><span class="method-badge method-delete">DELETE</span><span class="endpoint-desc"><span class="endpoint-path">/{sessionId}</span> — Clear a session and its history</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <button class="accordion-header" onclick="toggleAccordion(this)">
+          <div class="acc-left">
+            <span class="badge badge-blue">3 endpoints</span>
+            Output Converters — <code style="font-size:12px;color:var(--accent)">/api/output</code>
+          </div>
+          <span class="acc-chevron">▼</span>
+        </button>
+        <div class="accordion-body">
+          <p style="color:var(--text2);font-size:14px;margin-bottom:16px">Three conversion strategies side by side — compare them directly.</p>
+          <ul class="endpoint-list">
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/map</span> — <code>MapOutputConverter</code> → flexible <code>Map&lt;String, Object&gt;</code></span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/list</span> — <code>ListOutputConverter</code> → <code>List&lt;String&gt;</code></span></li>
+            <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc"><span class="endpoint-path">/bean</span> — <code>BeanOutputConverter</code> → typed bean + raw JSON</span></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SPRING AI PROVIDERS -->
+  <section id="springai-providers">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🔌</span> Spring AI — Additional Providers</div>
+      <p class="section-desc">Same <code>ChatClient</code> fluent API — just a different model bean injected. Proves Spring AI's provider abstraction works.</p>
+    </div>
+    <div class="provider-grid">
+
+      <div class="provider-card" style="--provider-color: #74aa9c">
+        <div class="provider-name">🤖 Spring AI + OpenAI</div>
+        <div class="provider-route">/api/springai/openai</div>
+        <div class="provider-key">Key: <span class="key-badge key-paid">OPENAI_API_KEY</span> · Model: gpt-4o-mini</div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — Basic chat</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/stream — SSE streaming</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat/custom — Override model, temp, tokens</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping — Health check</span></li>
+        </ul>
+      </div>
+
+      <div class="provider-card" style="--provider-color: var(--purple)">
+        <div class="provider-name">🦙 Spring AI + Ollama</div>
+        <div class="provider-route">/api/springai/ollama</div>
+        <div class="provider-key">Key: <span class="key-badge key-local">No Key Needed</span> · Local llama3.2</div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — Chat with local model</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/stream — SSE streaming</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat/with-system — Custom system prompt</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping — Setup instructions</span></li>
+        </ul>
+      </div>
+
+      <div class="provider-card" style="--provider-color: var(--orange)">
+        <div class="provider-name">🌊 Spring AI + Mistral AI</div>
+        <div class="provider-route">/api/springai/mistral</div>
+        <div class="provider-key">Key: <span class="key-badge key-paid">MISTRAL_API_KEY</span> · mistral-small-latest</div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — Basic chat</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/stream — SSE streaming</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat/custom — Override model per request</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping — Health check</span></li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- LANGCHAIN4J -->
+  <section id="langchain4j">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">⛓️</span> LangChain4j — Alternative Framework</div>
+      <p class="section-desc">Fundamentally different API — callback-based streaming, AiServices interfaces, annotation-driven prompts. Five providers.</p>
+    </div>
+
+    <div class="highlight-box info" style="margin-bottom:20px">
+      <span class="highlight-icon">💡</span>
+      <div class="highlight-text">
+        <strong>LangChain4j key concepts:</strong>
+        <code>ChatLanguageModel.generate()</code> for direct calls ·
+        <code>AiServices.builder()</code> for interface proxies ·
+        <code>@SystemMessage</code> on methods ·
+        <code>@V("name")</code> for template variables ·
+        <code>@MemoryId</code> for session routing
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-bottom:24px">
+      <div class="code-header"><span class="code-lang">java — LangChain4j AiServices pattern (same across all 5 providers)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code><span class="an">@FunctionalInterface</span>
+<span class="kw">interface</span> <span class="fn">Assistant</span> {
+    <span class="an">@SystemMessage</span>(<span class="str">"You are an expert in {domain}. Use {format} format."</span>)
+    String chat(<span class="an">@V</span>(<span class="str">"domain"</span>) String domain, <span class="an">@V</span>(<span class="str">"format"</span>) String format, <span class="an">@UserMessage</span> String message);
+}
+
+<span class="an">@FunctionalInterface</span>
+<span class="kw">interface</span> <span class="fn">MemoryAssistant</span> {
+    String chat(<span class="an">@MemoryId</span> String sessionId, <span class="an">@UserMessage</span> String message); <span class="cm">// routes to per-session memory</span>
+}
+
+<span class="cm">// Build once, reuse across requests</span>
+<span class="kw">var</span> memoryAssistant = AiServices.builder(MemoryAssistant.<span class="kw">class</span>)
+    .chatLanguageModel(chatModel)
+    .chatMemoryProvider(id -> MessageWindowChatMemory.withMaxMessages(<span class="nm">10</span>))
+    .build();</code></pre>
+    </div>
+
+    <div class="provider-grid">
+
+      <div class="provider-card" style="--provider-color: #74aa9c">
+        <div class="provider-name">🤖 LangChain4j + OpenAI</div>
+        <div class="provider-route">/api/langchain4j/openai</div>
+        <div class="provider-key">Key: <span class="key-badge key-paid">OPENAI_API_KEY</span> · Most endpoints</div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — <code>ChatLanguageModel.generate()</code></span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/stream — Callbacks → SSE</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service — AiServices + @SystemMessage</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service/persona — @V fills role + style</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/memory-chat — @MemoryId session routing</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping</span></li>
+        </ul>
+      </div>
+
+      <div class="provider-card" style="--provider-color: var(--pink)">
+        <div class="provider-name">🧠 LangChain4j + Anthropic</div>
+        <div class="provider-route">/api/langchain4j/anthropic</div>
+        <div class="provider-key">Key: <span class="key-badge key-paid">SPRING_AI_ANTHROPIC_API_KEY</span> — same key!</div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — Claude via LangChain4j</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service — AiServices with Claude</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service/expert — @V expert + depth</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/memory-chat — Per-session memory</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping</span></li>
+        </ul>
+      </div>
+
+      <div class="provider-card" style="--provider-color: var(--purple)">
+        <div class="provider-name">🦙 LangChain4j + Ollama</div>
+        <div class="provider-route">/api/langchain4j/ollama</div>
+        <div class="provider-key">Key: <span class="key-badge key-local">No Key Needed</span> · Local inference</div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — OllamaChatModel.generate()</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/stream — OllamaStreamingChatModel → SSE</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service — AiServices + local model</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping</span></li>
+        </ul>
+      </div>
+
+      <div class="provider-card" style="--provider-color: #4285f4">
+        <div class="provider-name">💎 LangChain4j + Google Gemini</div>
+        <div class="provider-route">/api/langchain4j/gemini</div>
+        <div class="provider-key">Key: <span class="key-badge key-free">GEMINI_API_KEY — Free Tier</span></div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — GoogleAiGeminiChatModel</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service — AiServices with Gemini</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service/domain — @V domain + format</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/memory-chat — @MemoryId session routing</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping</span></li>
+        </ul>
+      </div>
+
+      <div class="provider-card" style="--provider-color: var(--orange)">
+        <div class="provider-name">🌊 LangChain4j + Mistral AI</div>
+        <div class="provider-route">/api/langchain4j/mistral</div>
+        <div class="provider-key">Key: <span class="key-badge key-paid">MISTRAL_API_KEY</span></div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/chat — MistralAiChatModel.generate()</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/stream — MistralAiStreaming → SSE</span></li>
+          <li class="endpoint-item"><span class="method-badge method-post">POST</span><span class="endpoint-desc">/ai-service — AiServices with Mistral</span></li>
+          <li class="endpoint-item"><span class="method-badge method-get">GET</span><span class="endpoint-desc">/ping</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="code-block" style="margin-top:24px">
+      <div class="code-header"><span class="code-lang">java — LangChain4j streaming bridged to Flux&lt;String&gt;</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code><span class="kw">public</span> Flux&lt;String&gt; <span class="fn">streamChat</span>(String message) {
+    <span class="kw">return</span> Flux.create(sink ->
+        streamingChatModel.generate(message, <span class="kw">new</span> StreamingResponseHandler&lt;AiMessage&gt;() {
+            <span class="an">@Override</span> <span class="kw">public void</span> <span class="fn">onNext</span>(String token)                { sink.next(token); }
+            <span class="an">@Override</span> <span class="kw">public void</span> <span class="fn">onComplete</span>(Response&lt;AiMessage&gt; r)  { sink.complete(); }
+            <span class="an">@Override</span> <span class="kw">public void</span> <span class="fn">onError</span>(Throwable error)           { sink.error(error); }
+        }));
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- COMPARISON -->
+  <section id="comparison">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">⚖️</span> Framework Comparison</div>
+      <p class="section-desc">Spring AI vs LangChain4j — same outcome, different philosophy.</p>
+    </div>
+
+    <div class="comparison-grid" style="margin-bottom:24px">
+      <div class="fw-card">
+        <div class="fw-header">
+          <div class="fw-logo" style="background:rgba(63,185,80,0.1)">🌱</div>
+          <div><div class="fw-title">Spring AI</div><div class="fw-version">1.0.0 · Spring-native</div></div>
+        </div>
+        <ul class="fw-features">
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Fluent <code>ChatClient</code> builder chain</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Auto-configured beans — zero manual config</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div><code>.entity(Class)</code> structured output — one line</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div><code>.stream().content()</code> → native <code>Flux&lt;String&gt;</code></div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div><code>MessageChatMemoryAdvisor</code> via advisors</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Per-request options via <code>ChatOptions</code> builder</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div><code>PromptTemplate</code> with named variables</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(88,166,255,0.15);color:var(--accent)">→</div><div>Best for: new Spring Boot projects</div></li>
+        </ul>
+      </div>
+      <div class="fw-card">
+        <div class="fw-header">
+          <div class="fw-logo" style="background:rgba(188,140,255,0.1)">⛓️</div>
+          <div><div class="fw-title">LangChain4j</div><div class="fw-version">0.36.2 · Framework-agnostic</div></div>
+        </div>
+        <ul class="fw-features">
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Interface-based AiServices — annotation-driven</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Works without Spring (plain Java)</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div><code>@SystemMessage</code> + <code>@V</code> on interface methods</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div><code>@MemoryId</code> automatic per-session routing</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Callback <code>StreamingResponseHandler</code></div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(63,185,80,0.15);color:var(--green)">✓</div><div>Wider provider ecosystem (Gemini, etc.)</div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(255,166,87,0.15);color:var(--orange)">△</div><div>Manual Spring integration with <code>@Qualifier</code></div></li>
+          <li class="fw-feature"><div class="dot" style="background:rgba(88,166,255,0.15);color:var(--accent)">→</div><div>Best for: non-Spring or polyglot projects</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Spring AI 1.0.0</th>
+            <th>LangChain4j 0.36.2</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Basic chat</td><td class="mono">chatClient.prompt().user(msg).call().content()</td><td class="mono">chatModel.generate(msg)</td></tr>
+          <tr><td>Streaming</td><td class="mono">stream().content() → Flux&lt;String&gt;</td><td><code>StreamingResponseHandler</code> callbacks</td></tr>
+          <tr><td>System prompt</td><td class="mono">.system("...")</td><td class="mono">@SystemMessage on method</td></tr>
+          <tr><td>Template variables</td><td><code>PromptTemplate</code> / <code>SystemPromptTemplate</code></td><td class="mono">@V("name") annotation</td></tr>
+          <tr><td>Conversation memory</td><td><code>MessageWindowChatMemory</code> + advisor</td><td class="mono">@MemoryId automatic routing</td></tr>
+          <tr><td>Structured output</td><td class="mono">.call().entity(MyClass.class)</td><td>AiServices typed return type</td></tr>
+          <tr><td>Tool calling</td><td class="mono">@Tool + .tools() on ChatClient</td><td class="mono">@Tool + .tools() on AiServices</td></tr>
+          <tr><td>Spring integration</td><td><span class="check">✓</span> Native auto-config</td><td><span class="cross">△</span> Manual + <code>@Qualifier</code></td></tr>
+          <tr><td>Framework requirement</td><td>Spring Boot recommended</td><td><span class="check">✓</span> Plain Java works</td></tr>
+          <tr><td>Gemini support</td><td><span class="cross">✗</span> Not yet</td><td><span class="check">✓</span> Included</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- API KEYS -->
+  <section id="keys">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🔑</span> API Keys Reference</div>
+      <p class="section-desc">Keys are stored as environment variables only — never hardcoded in source or committed to git.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Provider</th><th>Environment Variable</th><th>Used By</th><th>Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🧠 Anthropic Claude</td>
+            <td class="mono">SPRING_AI_ANTHROPIC_API_KEY</td>
+            <td><code>/api/agent/*</code> · <code>/api/langchain4j/anthropic/*</code></td>
+            <td><span class="key-badge key-paid">Pay per use</span></td>
+          </tr>
+          <tr>
+            <td>🤖 OpenAI</td>
+            <td class="mono">OPENAI_API_KEY</td>
+            <td><code>/api/springai/openai/*</code> · <code>/api/langchain4j/openai/*</code></td>
+            <td><span class="key-badge key-paid">Pay per use</span></td>
+          </tr>
+          <tr>
+            <td>💎 Google Gemini</td>
+            <td class="mono">GEMINI_API_KEY</td>
+            <td><code>/api/langchain4j/gemini/*</code></td>
+            <td><span class="key-badge key-free">Free tier available</span></td>
+          </tr>
+          <tr>
+            <td>🌊 Mistral AI</td>
+            <td class="mono">MISTRAL_API_KEY</td>
+            <td><code>/api/springai/mistral/*</code> · <code>/api/langchain4j/mistral/*</code></td>
+            <td><span class="key-badge key-paid">Pay per use</span></td>
+          </tr>
+          <tr>
+            <td>🦙 Ollama</td>
+            <td>— none required —</td>
+            <td><code>/api/springai/ollama/*</code> · <code>/api/langchain4j/ollama/*</code></td>
+            <td><span class="key-badge key-local">Free + local</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="stack">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🛠️</span> Technology Stack</div>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card"><div class="tech-icon">☕</div><div class="tech-name">Java</div><div class="tech-version">21 (JBR 25.0.2)</div></div>
+      <div class="tech-card"><div class="tech-icon">🌱</div><div class="tech-name">Spring Boot</div><div class="tech-version">3.3.4</div></div>
+      <div class="tech-card"><div class="tech-icon">🤖</div><div class="tech-name">Spring AI</div><div class="tech-version">1.0.0</div></div>
+      <div class="tech-card"><div class="tech-icon">⛓️</div><div class="tech-name">LangChain4j</div><div class="tech-version">0.36.2</div></div>
+      <div class="tech-card"><div class="tech-icon">📖</div><div class="tech-name">Swagger / OpenAPI</div><div class="tech-version">2.6.0</div></div>
+      <div class="tech-card"><div class="tech-icon">🔧</div><div class="tech-name">Lombok</div><div class="tech-version">Latest</div></div>
+      <div class="tech-card"><div class="tech-icon">🏗️</div><div class="tech-name">Maven</div><div class="tech-version">3.9.9</div></div>
+      <div class="tech-card"><div class="tech-icon">🐱</div><div class="tech-name">Tomcat (embedded)</div><div class="tech-version">10.1.30</div></div>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <div class="section-title" style="font-size:18px;margin-bottom:16px">📊 Endpoint Distribution</div>
+      <div style="max-width:600px">
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Spring AI + Anthropic Core (9 controllers)</span><span>~50 endpoints</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:68%;background:var(--green)"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Spring AI Additional Providers (3 controllers)</span><span>12 endpoints</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:16%;background:var(--accent)"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>LangChain4j Providers (5 controllers)</span><span>26 endpoints</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:35%;background:var(--purple)"></div></div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Streaming Endpoints (SSE) across all providers</span><span>14 endpoints</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:19%;background:var(--orange)"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ACCESS -->
+  <section id="access">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🔗</span> Access Points</div>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(63,185,80,0.1)">📖</div>
+          <div><div class="card-title">Swagger UI</div><div class="card-subtitle">Interactive API explorer — all 73 endpoints</div></div>
+        </div>
+        <div class="mono" style="font-size:13px">http://localhost:8080/swagger-ui/index.html</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(88,166,255,0.1)">📄</div>
+          <div><div class="card-title">OpenAPI JSON Spec</div><div class="card-subtitle">Raw machine-readable spec</div></div>
+        </div>
+        <div class="mono" style="font-size:13px">http://localhost:8080/v3/api-docs</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(188,140,255,0.1)">⑂</div>
+          <div><div class="card-title">GitHub Repository</div><div class="card-subtitle">Full source code — branch: main</div></div>
+        </div>
+        <div class="mono" style="font-size:13px">github.com/PandurangGG/javaspringai</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>Java AI Frameworks Reference Project · Built with Spring Boot 3.3.4 · Spring AI 1.0.0 · LangChain4j 0.36.2</p>
+  <p style="margin-top:8px"><a href="https://github.com/PandurangGG/javaspringai" target="_blank">⑂ GitHub</a> · <a href="http://localhost:8080/swagger-ui/index.html" target="_blank">📖 Swagger UI</a></p>
+</footer>
+
+<button class="back-to-top" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  // Theme toggle
+  function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.querySelector('.theme-toggle');
+    if (html.dataset.theme === 'dark') {
+      html.dataset.theme = 'light';
+      btn.textContent = '🌙 Dark';
+    } else {
+      html.dataset.theme = 'dark';
+      btn.textContent = '☀️ Light';
+    }
+  }
+
+  // Accordion
+  function toggleAccordion(btn) {
+    const item = btn.closest('.accordion-item');
+    item.classList.toggle('open');
+  }
+
+  // Tab switching
+  function switchTab(btn, panelId) {
+    const group = btn.closest('.tab-group');
+    group.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    group.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(panelId).classList.add('active');
+  }
+
+  // Copy code
+  function copyCode(btn) {
+    const code = btn.closest('.code-block').querySelector('pre').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // Animated counters
+  function animateCounters() {
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const target = parseInt(el.dataset.count);
+      let current = 0;
+      const step = Math.ceil(target / 30);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.textContent = current;
+        if (current >= target) clearInterval(timer);
+      }, 40);
+    });
+  }
+
+  // Intersection observer for counter animation
+  const statsSection = document.querySelector('.stats-section');
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      animateCounters();
+      observer.disconnect();
+    }
+  }, { threshold: 0.3 });
+  observer.observe(statsSection);
+
+  // Progress bar animation
+  const progressObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.progress-fill').forEach(bar => {
+          const w = bar.style.width;
+          bar.style.width = '0';
+          setTimeout(() => { bar.style.width = w; }, 100);
+        });
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.progress-wrap').forEach(el => progressObserver.observe(el.parentElement));
+
+  // Back to top
+  window.addEventListener('scroll', () => {
+    document.getElementById('btt').classList.toggle('visible', window.scrollY > 400);
+  });
+
+  // Active nav link highlighting
+  const sections = document.querySelectorAll('section[id]');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current ? 'var(--accent)' : '';
+    });
+  });
+</script>
+</body>
+</html>
