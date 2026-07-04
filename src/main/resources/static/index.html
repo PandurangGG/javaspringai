@@ -636,12 +636,12 @@ function setupStructured(btnId, txtId, path, field, outId) {
 const pageTemplates = {
   html: `
     <div class="page-header"><div class="page-title">📝 Prompt Templates</div><div class="page-sub">Dynamic prompts with variables filled at runtime</div></div>
-    <div class="tabs">
+    <div data-tabs="tp"><div class="tabs">
       <button class="tab on" onclick="switchTab('tp',0)">🌐 Translate</button>
       <button class="tab" onclick="switchTab('tp',1)">📧 Email Generator</button>
       <button class="tab" onclick="switchTab('tp',2)">🧑‍🏫 Explain</button>
       <button class="tab" onclick="switchTab('tp',3)">🧪 Generate Tests</button>
-    </div>
+    </div></div>
 
     <div data-panel="tp" class="tab-panel on">
       <div class="grid-2">
@@ -724,12 +724,12 @@ const pageTemplates = {
 const pageVision = {
   html: `
     <div class="page-header"><div class="page-title">👁️ Vision / Multimodal</div><div class="page-sub">Claude reads and analyzes images from URLs</div></div>
-    <div class="tabs">
+    <div data-tabs="vi"><div class="tabs">
       <button class="tab on" onclick="switchTab('vi',0)">🔍 Analyze</button>
       <button class="tab" onclick="switchTab('vi',1)">📄 Describe</button>
       <button class="tab" onclick="switchTab('vi',2)">🔤 Extract Text (OCR)</button>
       <button class="tab" onclick="switchTab('vi',3)">⚖️ Compare Two Images</button>
-    </div>
+    </div></div>
 
     <div data-panel="vi" class="tab-panel on">
       <div class="inp-group"><label class="inp-label">Image URL</label><input class="inp" id="vi-an-url" value="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"></div>
@@ -880,13 +880,13 @@ const pageTools = {
 const pageModelConfig = {
   html: `
     <div class="page-header"><div class="page-title">⚙️ Model Config</div><div class="page-sub">Override model parameters per request — no restart needed</div></div>
-    <div class="tabs">
+    <div data-tabs="mc"><div class="tabs">
       <button class="tab on" onclick="switchTab('mc',0)">🎨 Creative</button>
       <button class="tab" onclick="switchTab('mc',1)">🎯 Precise</button>
       <button class="tab" onclick="switchTab('mc',2)">⚡ Fast (Haiku)</button>
       <button class="tab" onclick="switchTab('mc',3)">🎭 Persona</button>
       <button class="tab" onclick="switchTab('mc',4)">🛠️ Custom</button>
-    </div>
+    </div></div>
     ${['creative','precise','fast'].map((m,i)=>`
       <div data-panel="mc" class="tab-panel ${i===0?'on':''}">
         <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--t2)">
@@ -1005,11 +1005,11 @@ function memNewSession(){ const n='session-'+uid(); if($('#mem-sid')) $('#mem-si
 const pageOutputConv = {
   html: `
     <div class="page-header"><div class="page-title">🔄 Output Converters</div><div class="page-sub">Three conversion strategies from the same AI response</div></div>
-    <div class="tabs">
+    <div data-tabs="oc"><div class="tabs">
       <button class="tab on" onclick="switchTab('oc',0)">🗺️ Map Converter</button>
       <button class="tab" onclick="switchTab('oc',1)">📋 List Converter</button>
       <button class="tab" onclick="switchTab('oc',2)">🫘 Bean Converter</button>
-    </div>
+    </div></div>
     ${[['oc-map','Map','map','prompt','List the top 5 programming languages with their primary use cases as key-value pairs'],
        ['oc-list','List','list','prompt','Name 7 popular databases used in enterprise applications'],
        ['oc-bean','Bean','bean','text','The team delivered excellent results this quarter despite tight deadlines']].map(([p,l,ep,f,ex],i)=>`
@@ -1039,9 +1039,9 @@ function buildProviderPage({id, title, subtitle, lib, libBadge, mainPath, stream
     html: `
       <div class="page-header"><div class="page-title">${title}</div><div class="page-sub">${subtitle}</div></div>
       ${banner}
-      <div class="tabs">
+      <div data-tabs="${id}"><div class="tabs">
         ${allTabs.map((t,i)=>`<button class="tab ${i===0?'on':''}" onclick="switchTab('${id}',${i})">${t}</button>`).join('')}
-      </div>
+      </div></div>
 
       <!-- Basic Chat -->
       <div data-panel="${id}" class="tab-panel on">
@@ -1437,12 +1437,12 @@ const pageFreeApis = {
     </div>
 
     <!-- Tabs -->
-    <div class="tabs">
+    <div data-tabs="fa"><div class="tabs">
       <button class="tab on"  onclick="switchTab('fa',0)">🔧 Tools (15 utilities)</button>
       <button class="tab"     onclick="switchTab('fa',1)">🦙 Ollama — Spring AI</button>
       <button class="tab"     onclick="switchTab('fa',2)">🦙 Ollama — LangChain4j</button>
       <button class="tab"     onclick="switchTab('fa',3)">📋 What needs a key?</button>
-    </div>
+    </div></div>
 
     <!-- ── TAB 0: Tools ── -->
     <div data-panel="fa" class="tab-panel on">
@@ -1529,11 +1529,11 @@ const pageFreeApis = {
     <div data-panel="fa" class="tab-panel">
       ${ollamaSetupBanner('fa-ol')}
 
-      <div class="tabs" style="margin-bottom:14px">
+      <div data-tabs="fa-ol"><div class="tabs" style="margin-bottom:14px">
         <button class="tab on" onclick="switchTab('fa-ol',0)">💬 Chat</button>
         <button class="tab"   onclick="switchTab('fa-ol',1)">🌊 Stream</button>
         <button class="tab"   onclick="switchTab('fa-ol',2)">💬 With System Prompt</button>
-      </div>
+      </div></div>
 
       <div data-panel="fa-ol" class="tab-panel on">
         <div class="chat-wrap" style="height:340px">
@@ -1569,11 +1569,11 @@ const pageFreeApis = {
     <div data-panel="fa" class="tab-panel">
       ${ollamaSetupBanner('fa-lc')}
 
-      <div class="tabs" style="margin-bottom:14px">
+      <div data-tabs="fa-lc"><div class="tabs" style="margin-bottom:14px">
         <button class="tab on" onclick="switchTab('fa-lc',0)">💬 Direct Chat</button>
         <button class="tab"   onclick="switchTab('fa-lc',1)">🌊 Stream</button>
         <button class="tab"   onclick="switchTab('fa-lc',2)">🤖 AiServices</button>
-      </div>
+      </div></div>
 
       <div data-panel="fa-lc" class="tab-panel on">
         <div class="chat-wrap" style="height:340px">
