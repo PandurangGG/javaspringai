@@ -26,6 +26,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nav-item:hover{background:var(--s2);color:var(--tx)}
 .nav-item.active{background:rgba(88,166,255,.12);color:var(--ac);font-weight:600}
 .nav-tree{overflow-y:auto;flex:1;padding-bottom:12px}
+/* SIDEBAR FILTER TABS */
+.sb-filters{display:flex;gap:3px;padding:0 10px 8px;border-bottom:1px solid var(--bd);margin-bottom:2px}
+.sb-ftab{flex:1;background:transparent;border:1px solid var(--bd);color:var(--t2);padding:4px 0;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;letter-spacing:.3px;transition:all .15s;text-align:center}
+.sb-ftab:hover{color:var(--tx);background:var(--s2)}
+.sb-ftab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.sb-ftab.on.free{background:var(--gr);border-color:var(--gr)}
+/* SIDEBAR BADGES */
+.nb{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:auto;flex-shrink:0;letter-spacing:.3px}
+.nb-free{background:rgba(63,185,80,.2);color:var(--gr)}
+.nb-key{background:rgba(210,153,34,.15);color:var(--ye)}
+/* KEY PILL on page */
+.key-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600}
+.key-paid{background:rgba(255,166,87,.12);color:var(--or);border:1px solid rgba(255,166,87,.3)}
+.key-free{background:rgba(63,185,80,.12);color:var(--gr);border:1px solid rgba(63,185,80,.3)}
+.key-local{background:rgba(188,140,255,.12);color:var(--pu);border:1px solid rgba(188,140,255,.3)}
 /* MAIN */
 #main{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
 /* BUTTONS */
@@ -179,30 +194,33 @@ const S = {
 };
 
 /* ── NAV ── */
+// free:true  = no API key needed
+// key:'NAME' = which env var is required
 const NAV = [
-  {id:'dashboard', label:'📊 Dashboard'},
+  {id:'dashboard',  label:'📊 Dashboard',           free:true},
+  {id:'free-apis',  label:'🆓 No API Key Required',  free:true},
   {group:'🌱 Spring AI — Anthropic (Core)', items:[
-    {id:'agent-chat',    label:'💬 Agent Chat'},
-    {id:'stream-chat',   label:'🌊 Stream Chat'},
-    {id:'structured',    label:'📊 Structured Output'},
-    {id:'templates',     label:'📝 Templates'},
-    {id:'vision',        label:'👁️ Vision / Multimodal'},
-    {id:'tools',         label:'🔧 Tools Playground'},
-    {id:'model-config',  label:'⚙️ Model Config'},
-    {id:'memory',        label:'🧠 Conversation Memory'},
-    {id:'output-conv',   label:'🔄 Output Converters'},
+    {id:'agent-chat',   label:'💬 Agent Chat',          key:'ANTHROPIC'},
+    {id:'stream-chat',  label:'🌊 Stream Chat',          key:'ANTHROPIC'},
+    {id:'structured',   label:'📊 Structured Output',    key:'ANTHROPIC'},
+    {id:'templates',    label:'📝 Templates',             key:'ANTHROPIC'},
+    {id:'vision',       label:'👁️ Vision / Multimodal',  key:'ANTHROPIC'},
+    {id:'tools',        label:'🔧 Tools Playground',     free:true},
+    {id:'model-config', label:'⚙️ Model Config',         key:'ANTHROPIC'},
+    {id:'memory',       label:'🧠 Conversation Memory',  key:'ANTHROPIC'},
+    {id:'output-conv',  label:'🔄 Output Converters',    key:'ANTHROPIC'},
   ]},
   {group:'⚡ Spring AI — More Providers', items:[
-    {id:'sai-openai',  label:'🤖 OpenAI'},
-    {id:'sai-ollama',  label:'🦙 Ollama (Local)'},
-    {id:'sai-mistral', label:'🌊 Mistral AI'},
+    {id:'sai-openai',  label:'🤖 OpenAI',        key:'OPENAI'},
+    {id:'sai-ollama',  label:'🦙 Ollama (Local)', free:true},
+    {id:'sai-mistral', label:'🌊 Mistral AI',     key:'MISTRAL'},
   ]},
   {group:'⛓️ LangChain4j', items:[
-    {id:'lc4j-openai',    label:'🤖 OpenAI'},
-    {id:'lc4j-anthropic', label:'🧠 Anthropic'},
-    {id:'lc4j-ollama',    label:'🦙 Ollama (Local)'},
-    {id:'lc4j-gemini',    label:'💎 Google Gemini'},
-    {id:'lc4j-mistral',   label:'🌊 Mistral AI'},
+    {id:'lc4j-openai',    label:'🤖 OpenAI',        key:'OPENAI'},
+    {id:'lc4j-anthropic', label:'🧠 Anthropic',     key:'ANTHROPIC'},
+    {id:'lc4j-ollama',    label:'🦙 Ollama (Local)', free:true},
+    {id:'lc4j-gemini',    label:'💎 Google Gemini',  key:'GEMINI'},
+    {id:'lc4j-mistral',   label:'🌊 Mistral AI',    key:'MISTRAL'},
   ]},
   {id:'comparison', label:'🔀 Compare Providers'},
 ];
@@ -1342,9 +1360,299 @@ const pageComparison = {
   }
 };
 
+/* ── FREE APIs CONSOLIDATED PAGE ── */
+const pageFreeApis = {
+  html: `
+    <div class="page-header">
+      <div class="page-title">🆓 No API Key Required</div>
+      <div class="page-sub">These endpoints work immediately — no account or billing needed</div>
+    </div>
+
+    <!-- Key legend -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px">
+      <span class="key-pill key-free">🆓 Completely free — no key, no account</span>
+      <span class="key-pill key-local">🦙 Local only — install <a href="https://ollama.ai" target="_blank" style="color:inherit">Ollama</a> first</span>
+      <span class="key-pill key-paid">🔑 Requires API key (other pages)</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab on"  onclick="switchTab('fa',0)">🔧 Tools (15 utilities)</button>
+      <button class="tab"     onclick="switchTab('fa',1)">🦙 Ollama — Spring AI</button>
+      <button class="tab"     onclick="switchTab('fa',2)">🦙 Ollama — LangChain4j</button>
+      <button class="tab"     onclick="switchTab('fa',3)">📋 What needs a key?</button>
+    </div>
+
+    <!-- ── TAB 0: Tools ── -->
+    <div data-panel="fa" class="tab-panel on">
+      <div style="background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--t2);margin-bottom:16px">
+        <strong style="color:var(--gr)">🆓 Pure utilities — no AI model, no API key.</strong>
+        All 15 tools run locally inside the Spring Boot JVM.
+      </div>
+      <div class="grid-auto">
+        <div class="card"><div class="card-title">📅 Date &amp; Time</div>
+          <button class="btn btn-secondary btn-sm" id="fa-dt">Get Now</button><div id="fa-dt-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🆔 UUID Generator</div>
+          <button class="btn btn-secondary btn-sm" id="fa-uu">Generate</button><div id="fa-uu-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🖥️ System Info</div>
+          <button class="btn btn-secondary btn-sm" id="fa-si">Get Info</button><div id="fa-si-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🧮 Calculator</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input class="inp" id="fa-ca-a" value="42" style="width:60px">
+            <select class="inp" id="fa-ca-op" style="width:55px"><option>+</option><option>-</option><option>*</option><option>/</option></select>
+            <input class="inp" id="fa-ca-b" value="58" style="width:60px">
+            <button class="btn btn-secondary btn-sm" id="fa-ca">=</button>
+          </div>
+          <div id="fa-ca-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🎲 Random Number</div>
+          <div style="display:flex;gap:6px"><input class="inp" id="fa-rn-mn" value="1" style="width:70px"><span style="align-self:center;color:var(--t2)">–</span><input class="inp" id="fa-rn-mx" value="100" style="width:70px"><button class="btn btn-secondary btn-sm" id="fa-rn">Roll</button></div>
+          <div id="fa-rn-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🌡️ Temperature Convert</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <input class="inp" id="fa-tc-v" value="100" style="width:65px">
+            <select class="inp" id="fa-tc-f" style="width:55px"><option>C</option><option>F</option><option>K</option></select>
+            <span style="align-self:center;color:var(--t2)">→</span>
+            <select class="inp" id="fa-tc-t" style="width:55px"><option>F</option><option>C</option><option>K</option></select>
+            <button class="btn btn-secondary btn-sm" id="fa-tc">Go</button>
+          </div>
+          <div id="fa-tc-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🔤 Text Transform</div>
+          <input class="inp" id="fa-tt-v" value="Hello World" style="margin-bottom:6px">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" id="fa-tt-up">UPPER</button>
+            <button class="btn btn-secondary btn-sm" id="fa-tt-lo">lower</button>
+          </div>
+          <div id="fa-tt-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">📊 Word Count</div>
+          <textarea class="inp" id="fa-wc-v" rows="2">The quick brown fox jumps over the lazy dog.</textarea>
+          <button class="btn btn-secondary btn-sm" style="margin-top:6px" id="fa-wc">Count</button>
+          <div id="fa-wc-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">🔐 Base64</div>
+          <input class="inp" id="fa-b6-v" value="Hello, Java AI World!" style="margin-bottom:6px">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" id="fa-b6-en">Encode</button>
+            <button class="btn btn-secondary btn-sm" id="fa-b6-de">Decode</button>
+          </div>
+          <div id="fa-b6-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card" style="grid-column:span 2"><div class="card-title">📝 Notes (CRUD)</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+            <input class="inp" id="fa-no-k" placeholder="key" style="width:100px" value="myNote">
+            <input class="inp" id="fa-no-v" placeholder="content" style="flex:1" value="Free API test note!">
+            <button class="btn btn-green btn-sm" id="fa-no-sv">Save</button>
+            <button class="btn btn-secondary btn-sm" id="fa-no-gt">Get</button>
+            <button class="btn btn-secondary btn-sm" id="fa-no-al">List</button>
+            <button class="btn btn-danger btn-sm" id="fa-no-dl">Delete</button>
+          </div>
+          <div id="fa-no-o" class="resp-box" style="display:none"></div></div>
+
+        <div class="card"><div class="card-title">🔍 Web Search (simulated)</div>
+          <div style="display:flex;gap:6px"><input class="inp" id="fa-ws-q" value="Spring AI 1.0"><button class="btn btn-secondary btn-sm" id="fa-ws">Search</button></div>
+          <div id="fa-ws-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+        <div class="card"><div class="card-title">📁 Directory List</div>
+          <div style="display:flex;gap:6px"><input class="inp" id="fa-dl-p" value="C:\\" style="font-family:monospace"><button class="btn btn-secondary btn-sm" id="fa-dl">List</button></div>
+          <div id="fa-dl-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 1: Ollama Spring AI ── -->
+    <div data-panel="fa" class="tab-panel">
+      <div style="background:rgba(188,140,255,.07);border:1px solid rgba(188,140,255,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--t2);margin-bottom:16px">
+        <strong style="color:var(--pu)">🦙 Local inference — no API key.</strong>
+        Requires <a href="https://ollama.ai" target="_blank" style="color:var(--pu)">Ollama</a> running at <code class="code">localhost:11434</code> with <code class="code">llama3.2</code> pulled (<code class="code">ollama pull llama3.2</code>).
+      </div>
+
+      <div class="tabs" style="margin-bottom:14px">
+        <button class="tab on" onclick="switchTab('fa-ol',0)">💬 Chat</button>
+        <button class="tab"   onclick="switchTab('fa-ol',1)">🌊 Stream</button>
+        <button class="tab"   onclick="switchTab('fa-ol',2)">💬 With System Prompt</button>
+      </div>
+
+      <div data-panel="fa-ol" class="tab-panel on">
+        <div class="chat-wrap" style="height:340px">
+          <div class="chat-messages" id="cm-fa-ol"></div>
+          <div class="chat-input-area">
+            <textarea class="inp" id="ci-fa-ol" rows="2" placeholder="Ask anything — Ollama answers locally"></textarea>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <button class="btn btn-primary" id="cs-fa-ol">Send</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearChat('fa-ol')">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="fa-ol" class="tab-panel">
+        <div class="inp-group"><label class="inp-label">Message</label>
+          <textarea class="inp" id="fa-ol-sm" rows="3">Explain quantum entanglement in simple terms.</textarea></div>
+        <button class="btn btn-primary" id="fa-ol-sb">▶ Stream</button>
+        <div style="margin-top:12px"><div class="stream-box" id="fa-ol-so"><span class="cursor"></span></div></div>
+      </div>
+
+      <div data-panel="fa-ol" class="tab-panel">
+        <div class="inp-group"><label class="inp-label">System Prompt</label>
+          <textarea class="inp" id="fa-ol-sys" rows="2">You are a helpful coding assistant who always provides concise code examples.</textarea></div>
+        <div class="inp-group"><label class="inp-label">Message</label>
+          <textarea class="inp" id="fa-ol-sm2" rows="2">How do I reverse a string in Java?</textarea></div>
+        <button class="btn btn-primary" id="fa-ol-sb2">Send</button>
+        <div id="fa-ol-out2"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: Ollama LangChain4j ── -->
+    <div data-panel="fa" class="tab-panel">
+      <div style="background:rgba(188,140,255,.07);border:1px solid rgba(188,140,255,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--t2);margin-bottom:16px">
+        <strong style="color:var(--pu)">🦙 LangChain4j + Ollama — no API key.</strong>
+        Same local model, different framework. Demonstrates LangChain4j's <code class="code">ChatLanguageModel</code> and <code class="code">AiServices</code> interfaces.
+      </div>
+
+      <div class="tabs" style="margin-bottom:14px">
+        <button class="tab on" onclick="switchTab('fa-lc',0)">💬 Direct Chat</button>
+        <button class="tab"   onclick="switchTab('fa-lc',1)">🌊 Stream</button>
+        <button class="tab"   onclick="switchTab('fa-lc',2)">🤖 AiServices</button>
+      </div>
+
+      <div data-panel="fa-lc" class="tab-panel on">
+        <div class="chat-wrap" style="height:340px">
+          <div class="chat-messages" id="cm-fa-lc"></div>
+          <div class="chat-input-area">
+            <textarea class="inp" id="ci-fa-lc" rows="2" placeholder="ChatLanguageModel.generate() via Ollama"></textarea>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <button class="btn btn-primary" id="cs-fa-lc">Send</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearChat('fa-lc')">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-panel="fa-lc" class="tab-panel">
+        <div class="inp-group"><label class="inp-label">Message</label>
+          <textarea class="inp" id="fa-lc-sm" rows="3">What are the benefits of using Docker in development?</textarea></div>
+        <button class="btn btn-primary" id="fa-lc-sb">▶ Stream</button>
+        <div style="margin-top:12px"><div class="stream-box" id="fa-lc-so"><span class="cursor"></span></div></div>
+      </div>
+
+      <div data-panel="fa-lc" class="tab-panel">
+        <div class="inp-group"><label class="inp-label">Message (via AiServices proxy interface)</label>
+          <textarea class="inp" id="fa-lc-ai" rows="3">Explain the difference between abstract classes and interfaces in Java.</textarea></div>
+        <button class="btn btn-primary" id="fa-lc-ab">Send via AiServices</button>
+        <div id="fa-lc-ao"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: What needs a key ── -->
+    <div data-panel="fa" class="tab-panel">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">
+        ${[
+          ['🧠 Anthropic Claude','SPRING_AI_ANTHROPIC_API_KEY','Used by: Agent Chat, Stream, Structured Output, Templates, Vision, Model Config, Memory, Output Converters, LC4j Anthropic','console.anthropic.com'],
+          ['🤖 OpenAI','OPENAI_API_KEY','Used by: Spring AI OpenAI, LangChain4j OpenAI','platform.openai.com'],
+          ['💎 Google Gemini','GEMINI_API_KEY','Used by: LangChain4j Gemini · Free tier available at Google AI Studio','aistudio.google.com'],
+          ['🌊 Mistral AI','MISTRAL_API_KEY','Used by: Spring AI Mistral, LangChain4j Mistral','console.mistral.ai'],
+        ].map(([name,envVar,desc,url])=>`
+          <div class="card">
+            <div class="card-title">${name}</div>
+            <div style="font-family:monospace;font-size:11px;background:var(--bg);padding:6px 10px;border-radius:5px;color:var(--ac);margin-bottom:10px;word-break:break-all">${envVar}</div>
+            <div style="font-size:12px;color:var(--t2);margin-bottom:8px">${desc}</div>
+            <div style="font-size:11px;color:var(--t3)">Get key: <a href="https://${url}" target="_blank" style="color:var(--ac)">${url} ↗</a></div>
+          </div>`).join('')}
+        <div class="card" style="border-color:rgba(63,185,80,.3)">
+          <div class="card-title">🦙 Ollama — Local</div>
+          <div style="font-family:monospace;font-size:11px;background:var(--bg);padding:6px 10px;border-radius:5px;color:var(--gr);margin-bottom:10px">No key needed</div>
+          <div style="font-size:12px;color:var(--t2);margin-bottom:8px">Used by: Spring AI Ollama, LangChain4j Ollama. Requires Ollama installed locally.</div>
+          <div style="background:var(--bg);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:var(--tx)">
+            # Install &amp; pull model<br>
+            ollama pull llama3.2<br><br>
+            # Verify it's running<br>
+            curl localhost:11434/api/tags
+          </div>
+        </div>
+        <div class="card" style="border-color:rgba(63,185,80,.3)">
+          <div class="card-title">🔧 Tools — Always Free</div>
+          <div style="font-family:monospace;font-size:11px;background:var(--bg);padding:6px 10px;border-radius:5px;color:var(--gr);margin-bottom:10px">No key needed</div>
+          <div style="font-size:12px;color:var(--t2)">All 15 tool endpoints run inside the JVM: datetime, calculator, UUID, random, base64, word count, text transform, temperature converter, notes (CRUD), web search, directory list, system info.</div>
+        </div>
+      </div>
+    </div>`,
+
+  init() {
+    if(!S.chats['fa-ol']) S.chats['fa-ol']=[];
+    if(!S.chats['fa-lc']) S.chats['fa-lc']=[];
+
+    // Tools wiring (same logic as pageTools)
+    const show=(id,data)=>{const el=$('#'+id);el.style.display='block';el.innerHTML=`<pre>${esc(fmt(data))}</pre>`;};
+    const go=(id,outId,fn)=>{ const b=$('#'+id); if(b) b.onclick=async()=>{try{const d=await fn();show(outId,d);}catch(e){toast(e.message,'err');}};};
+    go('fa-dt','fa-dt-o',()=>apiGet('/api/tools/datetime'));
+    go('fa-uu','fa-uu-o',()=>apiGet('/api/tools/uuid'));
+    go('fa-si','fa-si-o',()=>apiGet('/api/tools/system-info'));
+    go('fa-ca','fa-ca-o',()=>apiPost('/api/tools/calculate',{a:$('#fa-ca-a').value,operator:$('#fa-ca-op').value,b:$('#fa-ca-b').value}));
+    go('fa-rn','fa-rn-o',()=>apiGet('/api/tools/random?min='+$('#fa-rn-mn').value+'&max='+$('#fa-rn-mx').value));
+    go('fa-tc','fa-tc-o',()=>apiPost('/api/tools/temperature/convert',{value:$('#fa-tc-v').value,from:$('#fa-tc-f').value,to:$('#fa-tc-t').value}));
+    go('fa-tt-up','fa-tt-o',()=>apiPost('/api/tools/text/transform',{text:$('#fa-tt-v').value,transformation:'upper'}));
+    go('fa-tt-lo','fa-tt-o',()=>apiPost('/api/tools/text/transform',{text:$('#fa-tt-v').value,transformation:'lower'}));
+    go('fa-wc','fa-wc-o',()=>apiPost('/api/tools/text/word-count',{text:$('#fa-wc-v').value}));
+    go('fa-b6-en','fa-b6-o',()=>apiPost('/api/tools/base64/encode',{text:$('#fa-b6-v').value}));
+    go('fa-b6-de','fa-b6-o',()=>apiPost('/api/tools/base64/decode',{encoded:$('#fa-b6-v').value}));
+    go('fa-no-sv','fa-no-o',()=>apiPost('/api/tools/notes',{key:$('#fa-no-k').value,content:$('#fa-no-v').value}));
+    go('fa-no-gt','fa-no-o',()=>apiGet('/api/tools/notes/'+$('#fa-no-k').value));
+    go('fa-no-al','fa-no-o',()=>apiGet('/api/tools/notes'));
+    go('fa-no-dl','fa-no-o',()=>apiDel('/api/tools/notes/'+$('#fa-no-k').value));
+    go('fa-ws','fa-ws-o',()=>apiGet('/api/tools/search?query='+encodeURIComponent($('#fa-ws-q').value)));
+    go('fa-dl','fa-dl-o',()=>apiGet('/api/tools/directory?path='+encodeURIComponent($('#fa-dl-p').value)));
+
+    // Ollama Spring AI — chat
+    const mkSend=(chatId,path,metaLib)=>{
+      const btn=$('#cs-'+chatId), inp=$('#ci-'+chatId);
+      if(!btn||!inp) return;
+      const send=async()=>{
+        const msg=inp.value.trim(); if(!msg) return;
+        inp.value=''; btn.disabled=true;
+        S.chats[chatId].push({role:'user',content:msg}); renderChat(chatId);
+        try {
+          const d=await apiPost(path,{message:msg});
+          S.chats[chatId].push({role:'ai',content:d.response||JSON.stringify(d),meta:{library:metaLib,provider:'Ollama'}});
+        } catch(e){ S.chats[chatId].push({role:'error',content:e.message}); toast(e.message,'err'); }
+        btn.disabled=false; renderChat(chatId);
+      };
+      btn.onclick=send;
+      inp.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}};
+      renderChat(chatId);
+    };
+    mkSend('fa-ol','/api/springai/ollama/chat','Spring AI');
+    mkSend('fa-lc','/api/langchain4j/ollama/chat','LangChain4j');
+
+    // Stream — Ollama SAI
+    setupStream('fa-ol-sb','fa-ol-sm','fa-ol-so','/api/springai/ollama/stream',m=>({message:m}));
+    // Stream — Ollama LC4j
+    setupStream('fa-lc-sb','fa-lc-sm','fa-lc-so','/api/langchain4j/ollama/stream',m=>({message:m}));
+
+    // With system prompt — Ollama SAI
+    $('#fa-ol-sb2').onclick=async()=>{
+      const btn=$('#fa-ol-sb2'); btn.disabled=true;
+      try { const d=await apiPost('/api/springai/ollama/chat/with-system',{system:$('#fa-ol-sys').value,message:$('#fa-ol-sm2').value}); $('#fa-ol-out2').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Ollama Local','b-purple')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+
+    // AiServices — Ollama LC4j
+    $('#fa-lc-ab').onclick=async()=>{
+      const btn=$('#fa-lc-ab'); btn.disabled=true;
+      try { const d=await apiPost('/api/langchain4j/ollama/ai-service',{message:$('#fa-lc-ai').value}); $('#fa-lc-ao').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('Ollama Local','b-purple'),badge('AiServices','b-blue')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+  }
+};
+
 /* ── ROUTE MAP ── */
 const PAGES = {
   'dashboard':      pageDashboard,
+  'free-apis':      pageFreeApis,
   'agent-chat':     pageAgentChat,
   'stream-chat':    pageStreamChat,
   'structured':     pageStructured,
@@ -1366,7 +1674,7 @@ const PAGES = {
 };
 
 const PAGE_LABELS = {
-  'dashboard':'Dashboard','agent-chat':'Agent Chat','stream-chat':'Stream Chat',
+  'dashboard':'Dashboard','free-apis':'🆓 No API Key Required','agent-chat':'Agent Chat','stream-chat':'Stream Chat',
   'structured':'Structured Output','templates':'Prompt Templates','vision':'Vision / Multimodal',
   'tools':'Tools Playground','model-config':'Model Config','memory':'Conversation Memory',
   'output-conv':'Output Converters','sai-openai':'Spring AI — OpenAI','sai-ollama':'Spring AI — Ollama',
@@ -1390,41 +1698,82 @@ function navigate(page) {
 }
 
 /* ── SIDEBAR ── */
+let sbFilter = 'all'; // 'all' | 'free'
+
+function navBadge(item) {
+  if(item.free) return '<span class="nb nb-free">FREE</span>';
+  if(item.key)  return `<span class="nb nb-key">${item.key}</span>`;
+  return '';
+}
+
+function makeNavItem(item) {
+  const el = document.createElement('div');
+  el.className = 'nav-item';
+  el.dataset.page = item.id;
+  el.dataset.free = item.free ? '1' : '0';
+  el.innerHTML = `<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">${item.label}</span>${navBadge(item)}`;
+  el.onclick = () => navigate(item.id);
+  return el;
+}
+
 function buildSidebar() {
-  const tree=$('#nav-tree'); tree.innerHTML='';
-  NAV.forEach(entry=>{
-    if(entry.id) {
-      const el=document.createElement('div');
-      el.className='nav-item'; el.dataset.page=entry.id;
-      el.textContent=entry.label;
-      el.onclick=()=>navigate(entry.id);
-      tree.appendChild(el);
-    } else if(entry.group) {
-      const g=document.createElement('div'); g.className='nav-group';
-      const lbl=document.createElement('div'); lbl.className='nav-group-label'; lbl.textContent=entry.group;
+  const tree = $('#nav-tree'); tree.innerHTML = '';
+
+  // Filter tab buttons
+  const filters = document.createElement('div');
+  filters.className = 'sb-filters';
+  filters.innerHTML = `
+    <button class="sb-ftab on" id="sf-all" onclick="setSbFilter('all')">All APIs</button>
+    <button class="sb-ftab free" id="sf-free" onclick="setSbFilter('free')">🆓 Free Only</button>`;
+  tree.appendChild(filters);
+
+  NAV.forEach(entry => {
+    if (entry.id) {
+      tree.appendChild(makeNavItem(entry));
+    } else if (entry.group) {
+      const g = document.createElement('div'); g.className = 'nav-group';
+      const lbl = document.createElement('div'); lbl.className = 'nav-group-label'; lbl.textContent = entry.group;
       g.appendChild(lbl);
-      entry.items.forEach(item=>{
-        const el=document.createElement('div');
-        el.className='nav-item'; el.dataset.page=item.id;
-        el.textContent=item.label;
-        el.onclick=()=>navigate(item.id);
-        g.appendChild(el);
-      });
+      entry.items.forEach(item => g.appendChild(makeNavItem(item)));
       tree.appendChild(g);
     }
+  });
+
+  applySbFilter();
+}
+
+function setSbFilter(f) {
+  sbFilter = f;
+  $('#sf-all').classList.toggle('on', f === 'all');
+  $('#sf-free').classList.toggle('on', f === 'free');
+  applySbFilter();
+}
+
+function applySbFilter() {
+  $$('.nav-item[data-free]').forEach(el => {
+    const isFree = el.dataset.free === '1';
+    el.style.display = (sbFilter === 'free' && !isFree) ? 'none' : '';
+  });
+  // Hide group labels when all their children are hidden
+  $$('.nav-group').forEach(g => {
+    const anyVisible = [...g.querySelectorAll('.nav-item')].some(i => i.style.display !== 'none');
+    g.style.display = anyVisible ? '' : 'none';
   });
 }
 
 /* ── NAV SEARCH ── */
 function setupNavSearch() {
-  $('#nav-search').oninput=function(){
-    const q=this.value.toLowerCase();
-    $$('.nav-item').forEach(el=>{
-      el.style.display=(!q||el.textContent.toLowerCase().includes(q))?'':'none';
+  $('#nav-search').oninput = function() {
+    const q = this.value.toLowerCase();
+    $$('.nav-item[data-free]').forEach(el => {
+      const isFree = el.dataset.free === '1';
+      const textMatch = !q || el.textContent.toLowerCase().includes(q);
+      const filterPass = sbFilter === 'all' || isFree;
+      el.style.display = (textMatch && filterPass) ? '' : 'none';
     });
-    $$('.nav-group-label').forEach(el=>{
-      const visible=[...el.parentElement.querySelectorAll('.nav-item')].some(i=>i.style.display!=='none');
-      el.style.display=visible?'':'none';
+    $$('.nav-group').forEach(g => {
+      const anyVisible = [...g.querySelectorAll('.nav-item')].some(i => i.style.display !== 'none');
+      g.style.display = anyVisible ? '' : 'none';
     });
   };
 }
