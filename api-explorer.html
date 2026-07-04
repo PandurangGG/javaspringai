@@ -41,31 +41,33 @@ header{
 
 /* ── MIXED-CONTENT BANNER ── */
 #mixedBanner{
-  display:none;flex-shrink:0;
-  background:rgba(232,155,26,.08);border-bottom:1px solid rgba(232,155,26,.3);
-  padding:10px 20px;gap:12px;align-items:flex-start;
+  display:none;flex-shrink:0;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(232,155,26,.06);border-bottom:1px solid rgba(232,155,26,.25);
+  padding:28px 24px;text-align:center;gap:12px;
 }
-#mixedBanner .mb-icon{font-size:15px;flex-shrink:0;margin-top:1px}
-#mixedBanner .mb-body{flex:1;font-size:12px;color:var(--tx2);line-height:1.6}
-#mixedBanner .mb-body strong{color:var(--warn)}
-#mixedBanner .mb-steps{margin-top:6px;padding-left:16px;color:var(--tx3);font-size:11.5px}
+#mixedBanner .mb-icon{font-size:32px;line-height:1}
+#mixedBanner .mb-title{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--warn)}
+#mixedBanner .mb-sub{font-size:13px;color:var(--tx2);line-height:1.7;max-width:460px}
+#mixedBanner .mb-sub code{
+  font-family:var(--mono);font-size:12px;
+  background:rgba(255,255,255,.07);border-radius:3px;padding:1px 6px;color:var(--tx);
+}
+#mixedBanner .mb-steps{
+  text-align:left;font-size:12.5px;color:var(--tx2);line-height:1.9;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px 16px;max-width:460px;width:100%;
+}
 #mixedBanner .mb-steps li{margin-bottom:2px}
-#mixedBanner .mb-steps code{
-  font-family:var(--mono);font-size:11px;
-  background:rgba(255,255,255,.06);border-radius:3px;padding:1px 5px;color:var(--tx2);
-}
-#mixedBanner .mb-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+#mixedBanner .mb-steps code{font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.06);border-radius:3px;padding:1px 5px;color:var(--accent)}
+#mixedBanner .mb-steps strong{color:var(--tx)}
 .mb-btn-dl{
-  background:var(--accent);border:none;border-radius:4px;
-  color:var(--base);font-family:var(--mono);font-size:11px;font-weight:700;
-  padding:5px 14px;cursor:pointer;transition:background .15s;
+  background:var(--accent);border:none;border-radius:var(--r);
+  color:var(--base);font-family:var(--mono);font-size:13px;font-weight:700;
+  padding:10px 28px;cursor:pointer;transition:background .15s;letter-spacing:.02em;
 }
 .mb-btn-dl:hover{background:#0ea89a}
-.mb-btn-dismiss{
-  background:none;border:1px solid var(--border);border-radius:4px;
-  color:var(--tx3);font-size:11px;padding:5px 12px;cursor:pointer;
-}
-.mb-btn-dismiss:hover{color:var(--tx2)}
+/* dim the whole sidebar+content when blocked */
+.https-blocked #sidebar,.https-blocked main#content{opacity:.25;pointer-events:none;user-select:none}
 .url-bar{
   display:flex;align-items:center;gap:8px;margin-left:auto;
   background:var(--card);border:1px solid var(--border);
@@ -243,17 +245,17 @@ select option{background:var(--card)}
   </header>
   <div id="mixedBanner">
     <div class="mb-icon">⚠</div>
-    <div class="mb-body">
-      <strong>Mixed-content blocked</strong> — this page is on HTTPS, so browsers block calls to <code id="mbUrl">http://localhost:8080</code> (HTTP).
-      <ol class="mb-steps">
-        <li><strong>Easiest:</strong> click <em>Download</em> above, then open the saved file locally — <code>file://</code> pages can call HTTP freely.</li>
-        <li><strong>Alternative:</strong> add <code>@CrossOrigin(origins="*")</code> to your Spring controllers <em>and</em> enable HTTPS on the backend, then set Base URL to <code>https://localhost:8443</code>.</li>
-      </ol>
-      <div class="mb-actions">
-        <button class="mb-btn-dl" onclick="downloadPage()">⬇ Download &amp; Run Locally</button>
-        <button class="mb-btn-dismiss" onclick="document.getElementById('mixedBanner').style.display='none'">Dismiss</button>
-      </div>
+    <div class="mb-title">Download required to use this explorer</div>
+    <div class="mb-sub">
+      This page is served over <code>HTTPS</code>, so browsers block all calls to
+      <code>http://localhost:8080</code>. The only fix is to open the file locally.
     </div>
+    <ol class="mb-steps">
+      <li><strong>Step 1</strong> — Click the button below (or <em>⬇ Download</em> in the header)</li>
+      <li><strong>Step 2</strong> — Open the saved <code>spring-ai-explorer.html</code> file directly in your browser</li>
+      <li><strong>Step 3</strong> — Make sure your Spring Boot app is running on <code>http://localhost:8080</code></li>
+    </ol>
+    <button class="mb-btn-dl" onclick="downloadPage()">⬇ Download &amp; Open Locally</button>
   </div>
   <div class="layout">
     <nav id="sidebar"></nav>
@@ -817,11 +819,11 @@ function clearEp(id){
 
 function applyBaseUrl(){
   S.baseUrl=document.getElementById('baseUrlInput').value.trim()||'http://localhost:8080';
-  document.getElementById('mbUrl').textContent=S.baseUrl;
-  // Re-show banner if still on HTTPS pointing to HTTP backend
   const isHttps=location.protocol==='https:';
   const targetHttp=S.baseUrl.startsWith('http:');
-  if(isHttps&&targetHttp) document.getElementById('mixedBanner').style.display='flex';
+  const blocked=isHttps&&targetHttp;
+  document.getElementById('mixedBanner').style.display=blocked?'flex':'none';
+  document.querySelector('.layout').classList.toggle('https-blocked',blocked);
 }
 
 function downloadPage(){
@@ -840,13 +842,13 @@ function downloadPage(){
 renderSidebar();
 renderContent();
 
-// Auto-show the mixed-content banner when served over HTTPS with an HTTP backend URL
+// Auto-show the mixed-content banner and dim the UI when served over HTTPS → HTTP backend
 (function(){
   const isHttps=location.protocol==='https:';
   const targetHttp=S.baseUrl.startsWith('http:');
   if(isHttps&&targetHttp){
     document.getElementById('mixedBanner').style.display='flex';
-    document.getElementById('mbUrl').textContent=S.baseUrl;
+    document.querySelector('.layout').classList.add('https-blocked');
   }
 })();
 </script>
