@@ -15,15 +15,17 @@
     <artifactId>spring-ai-agent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>spring-ai-agent</name>
-    <description>Agentic AI project using Spring AI</description>
+    <description>Multi-Framework Java AI Demo — Spring AI + LangChain4j with multiple providers</description>
 
     <properties>
         <java.version>21</java.version>
         <spring-ai.version>1.0.0</spring-ai.version>
+        <langchain4j.version>0.36.2</langchain4j.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- Spring AI BOM — manages all spring-ai-* artifact versions -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -31,38 +33,121 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- LangChain4j BOM — manages all langchain4j-* versions -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <dependencies>
-        <!-- Spring Boot Web -->
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- SPRING BOOT CORE                                        -->
+        <!-- ═══════════════════════════════════════════════════════ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring AI - Anthropic (Claude) -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- SPRING AI PROVIDERS                                     -->
+        <!-- Each starter auto-configures a typed ChatModel bean.   -->
+        <!-- Inject the specific type (AnthropicChatModel,          -->
+        <!-- OpenAiChatModel, etc.) in each service to avoid        -->
+        <!-- ambiguity when multiple providers are on classpath.    -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- Spring AI — Anthropic Claude (primary — existing)      -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-anthropic</artifactId>
         </dependency>
 
-        <!-- Spring AI OpenAI (optional — comment out if using Anthropic only) -->
-        <!--
+        <!-- Spring AI — OpenAI (GPT-4o / GPT-4o-mini)             -->
+        <!-- Requires env var: OPENAI_API_KEY                       -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
-        -->
 
-        <!-- Lombok -->
+        <!-- Spring AI — Ollama (local LLMs: llama3, phi3 …)       -->
+        <!-- No API key — requires Ollama running at localhost:11434 -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+        </dependency>
+
+        <!-- Spring AI — Mistral AI (mistral-small, mistral-large)  -->
+        <!-- Requires env var: MISTRAL_API_KEY                      -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-mistral-ai</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- LANGCHAIN4J PROVIDERS                                   -->
+        <!-- Alternative Java AI framework featuring:               -->
+        <!--   • ChatLanguageModel — raw model call API             -->
+        <!--   • AiServices — interface-based AI proxy              -->
+        <!--   • @SystemMessage/@UserMessage/@V — annotations       -->
+        <!--   • MessageWindowChatMemory + @MemoryId               -->
+        <!-- Beans are created in per-provider @Configuration       -->
+        <!-- classes with explicit @Qualifier names.                -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- LangChain4j Core (AiServices, ChatMemory, @Tool)       -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+        </dependency>
+
+        <!-- LangChain4j — OpenAI        Env: OPENAI_API_KEY        -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+        </dependency>
+
+        <!-- LangChain4j — Anthropic     Env: SPRING_AI_ANTHROPIC_API_KEY -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-anthropic</artifactId>
+        </dependency>
+
+        <!-- LangChain4j — Ollama        No key (fully local)       -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-ollama</artifactId>
+        </dependency>
+
+        <!-- LangChain4j — Google Gemini Env: GEMINI_API_KEY        -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-google-ai-gemini</artifactId>
+        </dependency>
+
+        <!-- LangChain4j — Mistral AI    Env: MISTRAL_API_KEY       -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-mistral-ai</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- UTILITIES & TOOLING                                     -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+
+        <!-- Lombok — reduces boilerplate -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
-        <!-- Springdoc OpenAPI / Swagger UI -->
+        <!-- Springdoc OpenAPI — Swagger UI at /swagger-ui/index.html -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -75,6 +160,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <repositories>
