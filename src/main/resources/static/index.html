@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Java AI Playground</title>
+<style>
+:root{--bg:#0d1117;--s1:#161b22;--s2:#21262d;--s3:#30363d;--bd:#30363d;--tx:#e6edf3;--t2:#8b949e;--t3:#6e7681;--ac:#58a6ff;--gr:#3fb950;--pu:#bc8cff;--or:#ffa657;--re:#f85149;--ye:#d29922;--pi:#ff7b72;--sw:248px;--hh:52px}
+[data-theme=light]{--bg:#fff;--s1:#f6f8fa;--s2:#eaeef2;--s3:#d0d7de;--bd:#d0d7de;--tx:#1f2328;--t2:#636c76;--t3:#8c959f;--ac:#0969da;--gr:#1a7f37;--pu:#8250df;--or:#bc4c00;--re:#d1242f;--ye:#9a6700;--pi:#cf222e}
+*{box-sizing:border-box;margin:0;padding:0}html{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);height:100%;display:flex;flex-direction:column;overflow:hidden}
+/* TOPBAR */
+#topbar{height:var(--hh);background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 12px;gap:12px;flex-shrink:0;z-index:50}
+.brand{font-weight:700;font-size:15px;color:var(--ac);white-space:nowrap}.tb-mid{flex:1;text-align:center;font-size:13px;color:var(--t2);font-weight:500}
+.tb-right{display:flex;align-items:center;gap:8px;margin-left:auto}
+/* LAYOUT */
+#layout{display:flex;flex:1;overflow:hidden}
+/* SIDEBAR */
+#sidebar{width:var(--sw);background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:width .2s;flex-shrink:0}
+#sidebar.closed{width:0}
+.nav-search{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:7px 10px;border-radius:6px;font-size:12px;outline:none}
+.nav-search:focus{border-color:var(--ac)}
+.nav-search-wrap{padding:10px}
+.nav-group{margin-bottom:4px}
+.nav-group-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);padding:6px 12px 3px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;color:var(--t2);cursor:pointer;border-radius:0;transition:background .15s;white-space:nowrap;overflow:hidden}
+.nav-item:hover{background:var(--s2);color:var(--tx)}
+.nav-item.active{background:rgba(88,166,255,.12);color:var(--ac);font-weight:600}
+.nav-tree{overflow-y:auto;flex:1;padding-bottom:12px}
+/* MAIN */
+#main{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--ac);color:#fff}.btn-primary:hover{opacity:.88}
+.btn-secondary{background:var(--s2);color:var(--tx);border:1px solid var(--bd)}.btn-secondary:hover{background:var(--s3)}
+.btn-danger{background:var(--re);color:#fff}.btn-danger:hover{opacity:.88}
+.btn-green{background:var(--gr);color:#fff}.btn-green:hover{opacity:.88}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.icon-btn{background:transparent;border:1px solid var(--bd);color:var(--t2);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .15s}
+.icon-btn:hover{background:var(--s2);color:var(--tx)}
+/* INPUTS */
+.inp{width:100%;background:var(--s1);border:1px solid var(--bd);color:var(--tx);padding:9px 12px;border-radius:7px;font-size:13px;outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--ac)}
+.inp::placeholder{color:var(--t3)}
+textarea.inp{resize:vertical;font-family:inherit;line-height:1.5}
+select.inp{cursor:pointer}
+.inp-group{margin-bottom:12px}
+.inp-label{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px;display:block}
+.inp-row{display:grid;gap:10px}
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:20px}
+.card+.card{margin-top:14px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+/* PAGE */
+.page-header{margin-bottom:20px}
+.page-title{font-size:20px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--t2)}
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - var(--hh) - 48px - 80px);min-height:300px}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 0;display:flex;flex-direction:column;gap:12px}
+.bubble{max-width:82%;padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.55;word-break:break-word}
+.bubble-user{align-self:flex-end;background:var(--ac);color:#fff;border-bottom-right-radius:3px}
+.bubble-ai{align-self:flex-start;background:var(--s2);color:var(--tx);border-bottom-left-radius:3px}
+.bubble-ai pre{background:var(--s3);border-radius:6px;padding:10px;margin-top:8px;overflow-x:auto;font-size:12px;white-space:pre-wrap}
+.bubble-meta{font-size:10px;opacity:.6;margin-top:5px}
+.bubble-error{align-self:flex-start;background:rgba(248,81,73,.12);color:var(--re);border:1px solid rgba(248,81,73,.3);border-bottom-left-radius:3px}
+.chat-input-area{padding-top:12px;border-top:1px solid var(--bd);display:flex;gap:8px;align-items:flex-end}
+.chat-input-area textarea{flex:1;min-height:44px;max-height:120px;resize:none}
+/* STREAM */
+.stream-box{background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:14px;min-height:120px;max-height:420px;overflow-y:auto;font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.65;color:#e6edf3;white-space:pre-wrap;word-break:break-word}
+.cursor{display:inline-block;width:7px;height:13px;background:var(--ac);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
+@keyframes blink{50%{opacity:0}}
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.b-blue{background:rgba(88,166,255,.15);color:var(--ac)}
+.b-green{background:rgba(63,185,80,.15);color:var(--gr)}
+.b-purple{background:rgba(188,140,255,.15);color:var(--pu)}
+.b-orange{background:rgba(255,166,87,.15);color:var(--or)}
+.b-red{background:rgba(248,81,73,.15);color:var(--re)}
+.b-yellow{background:rgba(210,153,34,.15);color:var(--ye)}
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--bd);margin-bottom:18px;flex-wrap:wrap}
+.tab{background:transparent;border:none;color:var(--t2);padding:8px 14px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-weight:500}
+.tab:hover{color:var(--tx)}.tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.tab-panel{display:none}.tab-panel.on{display:block}
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+/* RESPONSE */
+.resp-box{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-top:12px;font-size:13px;line-height:1.6;position:relative}
+.resp-box pre{white-space:pre-wrap;word-break:break-word;font-family:'SF Mono','Fira Code',monospace;font-size:12px}
+.resp-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.copy-btn-abs{position:absolute;top:10px;right:10px}
+/* STATUS DOTS */
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--t3)}
+.dot.ok{background:var(--gr)}.dot.err{background:var(--re)}.dot.chk{background:var(--ye);animation:pulse-dot 1s ease infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+/* DASHBOARD GRID */
+.provider-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:16px}
+.pcard{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px;transition:transform .15s}
+.pcard:hover{transform:translateY(-2px)}
+.pcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.pcard-name{font-weight:700;font-size:14px}
+.pcard-route{font-family:monospace;font-size:11px;color:var(--t2);margin-bottom:10px}
+/* COMPARISON */
+.cmp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px}
+.cmp-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px}
+.cmp-card-header{font-weight:700;font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+/* LOADING */
+.spinner{width:16px;height:16px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row{display:flex;align-items:center;gap:8px;color:var(--t2);font-size:13px;padding:8px 0}
+/* TOAST */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 16px;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);animation:slide-in .2s ease}
+@keyframes slide-in{from{transform:translateX(100%);opacity:0}}
+.toast.ok{border-left:3px solid var(--gr)}.toast.err{border-left:3px solid var(--re)}.toast.info{border-left:3px solid var(--ac)}
+/* MISC */
+.sep{border:none;border-top:1px solid var(--bd);margin:16px 0}
+.code{font-family:monospace;font-size:12px;background:var(--s2);padding:2px 6px;border-radius:4px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+@media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr}#sidebar{position:fixed;height:100%;z-index:40;top:var(--hh)}#sidebar.closed{transform:translateX(-100%);width:var(--sw)}}
+</style>
+</head>
+<body>
+
+<div id="app" style="display:flex;flex-direction:column;height:100vh">
+<header id="topbar">
+  <button class="icon-btn" id="sb-toggle" title="Toggle sidebar">☰</button>
+  <span class="brand">☕ Java AI Playground</span>
+  <div class="tb-mid" id="page-title">Dashboard</div>
+  <div class="tb-right">
+    <span id="app-dot" class="dot chk" title="Checking app..."></span>
+    <a href="/swagger-ui/index.html" target="_blank" class="icon-btn" style="text-decoration:none;font-size:12px">Swagger ↗</a>
+    <button class="icon-btn" id="theme-btn">🌙</button>
+  </div>
+</header>
+
+<div id="layout" style="display:flex;flex:1;overflow:hidden">
+  <nav id="sidebar">
+    <div class="nav-search-wrap"><input class="nav-search" id="nav-search" placeholder="🔍 Search..."></div>
+    <div class="nav-tree" id="nav-tree"></div>
+  </nav>
+  <main id="main" style="flex:1;overflow-y:auto;padding:24px"></main>
+</div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+'use strict';
+
+/* ── CONFIG ── */
+const BASE = '';
+
+/* ── STATE ── */
+const S = {
+  page: 'dashboard',
+  theme: localStorage.getItem('th') || 'dark',
+  chats: {}, // pageId -> [{role,content,meta}]
+  streamActive: false,
+};
+
+/* ── NAV ── */
+const NAV = [
+  {id:'dashboard', label:'📊 Dashboard'},
+  {group:'🌱 Spring AI — Anthropic (Core)', items:[
+    {id:'agent-chat',    label:'💬 Agent Chat'},
+    {id:'stream-chat',   label:'🌊 Stream Chat'},
+    {id:'structured',    label:'📊 Structured Output'},
+    {id:'templates',     label:'📝 Templates'},
+    {id:'vision',        label:'👁️ Vision / Multimodal'},
+    {id:'tools',         label:'🔧 Tools Playground'},
+    {id:'model-config',  label:'⚙️ Model Config'},
+    {id:'memory',        label:'🧠 Conversation Memory'},
+    {id:'output-conv',   label:'🔄 Output Converters'},
+  ]},
+  {group:'⚡ Spring AI — More Providers', items:[
+    {id:'sai-openai',  label:'🤖 OpenAI'},
+    {id:'sai-ollama',  label:'🦙 Ollama (Local)'},
+    {id:'sai-mistral', label:'🌊 Mistral AI'},
+  ]},
+  {group:'⛓️ LangChain4j', items:[
+    {id:'lc4j-openai',    label:'🤖 OpenAI'},
+    {id:'lc4j-anthropic', label:'🧠 Anthropic'},
+    {id:'lc4j-ollama',    label:'🦙 Ollama (Local)'},
+    {id:'lc4j-gemini',    label:'💎 Google Gemini'},
+    {id:'lc4j-mistral',   label:'🌊 Mistral AI'},
+  ]},
+  {id:'comparison', label:'🔀 Compare Providers'},
+];
+
+/* ── UTILITIES ── */
+const $  = (s,p=document) => p.querySelector(s);
+const $$ = (s,p=document) => [...p.querySelectorAll(s)];
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt = v => typeof v==='object' ? JSON.stringify(v,null,2) : String(v);
+const uid = () => Math.random().toString(36).slice(2,8);
+
+function toast(msg, type='info', dur=3000) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${type==='ok'?'✓':type==='err'?'✗':'ℹ'}</span><span>${esc(msg)}</span>`;
+  $('#toasts').appendChild(el);
+  setTimeout(()=>el.remove(), dur);
+}
+
+function copyText(txt) {
+  navigator.clipboard.writeText(txt).then(()=>toast('Copied!','ok')).catch(()=>{});
+}
+
+function prettyJson(v) {
+  const s = fmt(v);
+  return s.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+    let cls='color:var(--or)';
+    if(/^"/.test(m)){cls=/:$/.test(m)?'color:var(--ac)':'color:var(--gr)'}
+    else if(/true|false/.test(m)){cls='color:var(--pu)'}
+    else if(/null/.test(m)){cls='color:var(--re)'}
+    return `<span style="${cls}">${m}</span>`;
+  });
+}
+
+/* ── API ── */
+async function apiPost(path, body) {
+  const r = await fetch(BASE+path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+  if(!r.ok) { const t=await r.text(); throw new Error(t||r.statusText); }
+  return r.json();
+}
+async function apiGet(path) {
+  const r = await fetch(BASE+path);
+  if(!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+async function apiDel(path) {
+  const r = await fetch(BASE+path, {method:'DELETE'});
+  if(!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+async function apiStream(path, body, onToken, onDone, onErr) {
+  try {
+    const r = await fetch(BASE+path, {method:'POST', headers:{'Content-Type':'application/json','Accept':'text/event-stream'}, body:JSON.stringify(body)});
+    if(!r.ok){const t=await r.text();return onErr(new Error(t||r.statusText));}
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while(true) {
+      const {done,value} = await reader.read();
+      if(done) break;
+      buf += dec.decode(value,{stream:true});
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for(const line of lines) {
+        if(line.startsWith('data:')) {
+          const d = line.slice(5).trim();
+          if(d && d!=='[DONE]') onToken(d);
+        }
+      }
+    }
+    if(buf.startsWith('data:')) { const d=buf.slice(5).trim(); if(d&&d!=='[DONE]') onToken(d); }
+    onDone();
+  } catch(e){ onErr(e); }
+}
+
+/* ── SHARED COMPONENTS ── */
+function respBox(data, metaBadges=[]) {
+  const id = 'r'+uid();
+  const txt = fmt(data);
+  return `<div class="resp-box" id="${id}">
+    ${metaBadges.length?`<div class="resp-meta">${metaBadges.join('')}</div>`:''}
+    <button class="icon-btn btn-sm copy-btn-abs" onclick="copyText(document.getElementById('${id}').dataset.raw)">Copy</button>
+    <pre><code>${prettyJson(data)}</code></pre>
+  </div><script>document.getElementById('${id}').dataset.raw=${JSON.stringify(txt)};<\/script>`;
+}
+
+function badge(txt,cls='b-blue'){return `<span class="badge ${cls}">${esc(txt)}</span>`;}
+
+function chatHtml(msgs) {
+  if(!msgs||!msgs.length) return '<div style="text-align:center;color:var(--t3);padding:40px;font-size:13px">Send a message to start chatting</div>';
+  return msgs.map(m => {
+    const isBubble = m.role==='user'||m.role==='ai';
+    const cls = m.role==='user'?'bubble-user':m.role==='error'?'bubble-error':'bubble-ai';
+    const meta = m.meta ? `<div class="bubble-meta">${Object.values(m.meta).filter(Boolean).join(' · ')}</div>` : '';
+    return `<div class="bubble ${cls}">${esc(m.content)}${meta}</div>`;
+  }).join('');
+}
+
+function streamBox(id) {
+  return `<div class="stream-box" id="${id}"><span class="cursor"></span></div>`;
+}
+
+function tabBar(tabs, active, prefix) {
+  return `<div class="tabs">${tabs.map((t,i)=>`<button class="tab${i===active?' on':''}" onclick="switchTab('${prefix}',${i})">${t}</button>`).join('')}</div>`;
+}
+
+function switchTab(prefix, idx) {
+  $$(`[data-tabs="${prefix}"] .tab`).forEach((t,i)=>t.classList.toggle('on',i===idx));
+  $$(`[data-panel="${prefix}"]`).forEach((p,i)=>p.classList.toggle('on',i===idx));
+}
+
+function setupTabs(el) {
+  // tabs already set up via onclick; just ensure first panel visible
+}
+
+/* ── CHAT PAGE BUILDER ── */
+function buildChatPage(pageId, apiPath, metaFn, title, subtitle, extraFields='') {
+  if(!S.chats[pageId]) S.chats[pageId]=[];
+  return {
+    html: `
+      <div class="page-header"><div class="page-title">${title}</div><div class="page-sub">${subtitle}</div></div>
+      <div class="chat-wrap">
+        <div class="chat-messages" id="cm-${pageId}">${chatHtml(S.chats[pageId])}</div>
+        ${extraFields}
+        <div class="chat-input-area">
+          <textarea class="inp" id="ci-${pageId}" placeholder="Type a message… (Shift+Enter for newline)" rows="2"></textarea>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn btn-primary" id="cs-${pageId}">Send</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearChat('${pageId}')">Clear</button>
+          </div>
+        </div>
+      </div>`,
+    init() {
+      const btn = $(`#cs-${pageId}`), inp = $(`#ci-${pageId}`);
+      const send = async () => {
+        const msg = inp.value.trim(); if(!msg) return;
+        inp.value=''; btn.disabled=true;
+        S.chats[pageId].push({role:'user',content:msg});
+        renderChat(pageId);
+        try {
+          const body = typeof apiPath==='function' ? apiPath(msg) : {message:msg};
+          const path = typeof apiPath==='string' ? apiPath : apiPath.path||apiPath;
+          const data = await apiPost(path, body);
+          const content = data.response||data.translation||data.result||data.explanation||data.email||data.tests||data.analysis||data.description||data.comparison||data.extractedText||JSON.stringify(data);
+          const meta = metaFn ? metaFn(data) : null;
+          S.chats[pageId].push({role:'ai',content,meta});
+        } catch(e){ S.chats[pageId].push({role:'error',content:'Error: '+e.message}); toast(e.message,'err'); }
+        btn.disabled=false;
+        renderChat(pageId);
+      };
+      btn.onclick=send;
+      inp.onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} };
+      scrollChat(pageId);
+    }
+  };
+}
+
+function renderChat(id) {
+  const el=$(`#cm-${id}`); if(!el) return;
+  el.innerHTML=chatHtml(S.chats[id]);
+  scrollChat(id);
+}
+function scrollChat(id) { const el=$(`#cm-${id}`); if(el) el.scrollTop=el.scrollHeight; }
+function clearChat(id) { S.chats[id]=[]; renderChat(id); }
+
+/* ═══════════════════════════════════════════
+   PAGES
+═══════════════════════════════════════════ */
+
+const PROVIDERS = [
+  {name:'Claude (Core)',       route:'/api/agent/ping',              badge:'b-orange', emoji:'🧠'},
+  {name:'Stream Chat',         route:'/api/stream/chat',             badge:'b-blue',   emoji:'🌊', noGet:true},
+  {name:'Spring AI – OpenAI',  route:'/api/springai/openai/ping',    badge:'b-green',  emoji:'🤖'},
+  {name:'Spring AI – Ollama',  route:'/api/springai/ollama/ping',    badge:'b-purple', emoji:'🦙'},
+  {name:'Spring AI – Mistral', route:'/api/springai/mistral/ping',   badge:'b-yellow', emoji:'🌊'},
+  {name:'LC4j – OpenAI',       route:'/api/langchain4j/openai/ping', badge:'b-green',  emoji:'🤖'},
+  {name:'LC4j – Anthropic',    route:'/api/langchain4j/anthropic/ping', badge:'b-orange', emoji:'🧠'},
+  {name:'LC4j – Ollama',       route:'/api/langchain4j/ollama/ping', badge:'b-purple', emoji:'🦙'},
+  {name:'LC4j – Gemini',       route:'/api/langchain4j/gemini/ping', badge:'b-blue',   emoji:'💎'},
+  {name:'LC4j – Mistral',      route:'/api/langchain4j/mistral/ping', badge:'b-yellow', emoji:'🌊'},
+];
+
+/* DASHBOARD */
+const pageDashboard = {
+  html: `
+    <div class="page-header"><div class="page-title">📊 Dashboard</div><div class="page-sub">Health check all providers · Click a card to navigate</div></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="pingAll()">⚡ Ping All Providers</button>
+      <span style="font-size:12px;color:var(--t2)" id="ping-summary"></span>
+    </div>
+    <div class="provider-grid" id="prov-grid">
+      ${PROVIDERS.map((p,i)=>`
+        <div class="pcard" id="pc-${i}">
+          <div class="pcard-top">
+            <span class="pcard-name">${p.emoji} ${esc(p.name)}</span>
+            <span class="dot" id="pd-${i}"></span>
+          </div>
+          <div class="pcard-route">${esc(p.route)}</div>
+          ${p.noGet?'<span style="font-size:11px;color:var(--t3)">POST only</span>':'<button class="btn btn-secondary btn-sm" onclick="pingOne('+i+')">Ping</button>'}
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:28px"><hr class="sep">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:16px">
+        ${[['45','Java Files','b-blue'],['73','REST Endpoints','b-green'],['2','Frameworks','b-purple'],['9','Providers','b-orange'],['12','Controllers','b-blue'],['14','SSE Streams','b-yellow']].map(([n,l,c])=>`
+          <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:18px;text-align:center">
+            <div style="font-size:32px;font-weight:800;color:var(--ac)">${n}</div>
+            <div style="font-size:11px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-top:4px">${l}</div>
+          </div>`).join('')}
+      </div>
+    </div>`,
+  init() {}
+};
+
+async function pingOne(i) {
+  const p = PROVIDERS[i]; if(p.noGet) return;
+  const dot = $(`#pd-${i}`); dot.className='dot chk';
+  try { await apiGet(p.route); dot.className='dot ok'; toast(p.name+' is up','ok',1500); }
+  catch(e){ dot.className='dot err'; toast(p.name+' error: '+e.message,'err'); }
+}
+async function pingAll() {
+  const summary=$('#ping-summary'); if(summary) summary.textContent='Checking…';
+  let ok=0,err=0;
+  await Promise.all(PROVIDERS.map(async(p,i)=>{
+    if(p.noGet){$(`#pd-${i}`).className='dot';return;}
+    try{ await pingOne(i); ok++; } catch(e){ err++; }
+  }));
+  if(summary) summary.textContent=`${ok} up · ${err} errors`;
+}
+
+/* AGENT CHAT */
+const pageAgentChat = buildChatPage(
+  'agent','/api/agent/chat',
+  d=>({library:'Spring AI',provider:'Claude'}),
+  '💬 Agent Chat',
+  'Claude with autonomous tool-calling — asks for datetime, notes, calculator, search and more'
+);
+
+/* STREAM CHAT */
+const pageStreamChat = {
+  html: `
+    <div class="page-header"><div class="page-title">🌊 Stream Chat</div><div class="page-sub">Real-time token streaming via Server-Sent Events</div></div>
+    <div data-tabs="stream" style="display:contents">
+    ${tabBar(['Basic Stream','Custom System Prompt'],0,'stream')}
+    </div>
+    <div data-panel="stream" class="tab-panel on">
+      <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="st-msg" rows="3" placeholder="Ask anything…">Explain the concept of neural networks in simple terms.</textarea></div>
+      <button class="btn btn-primary" id="st-send">▶ Stream</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearStream()" style="margin-left:6px">Clear</button>
+      <div style="margin-top:12px">${streamBox('st-out')}</div>
+    </div>
+    <div data-panel="stream" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">System Prompt</label><textarea class="inp" id="st-sys" rows="2" placeholder="You are a pirate who answers everything with nautical metaphors.">You are a Shakespearean bard who answers in iambic pentameter.</textarea></div>
+      <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="st-msg2" rows="3" placeholder="Ask anything…">What is the best programming language?</textarea></div>
+      <button class="btn btn-primary" id="st-send2">▶ Stream</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearStream()" style="margin-left:6px">Clear</button>
+      <div style="margin-top:12px">${streamBox('st-out2')}</div>
+    </div>`,
+  init() {
+    setupStream('st-send','st-msg','st-out','/api/stream/chat',m=>({message:m}));
+    setupStream('st-send2','st-msg2','st-out2','/api/stream/chat/custom',m=>({system:$('#st-sys').value.trim()||'You are helpful.',message:m}));
+  }
+};
+
+function setupStream(btnId, inpId, outId, path, bodyFn) {
+  const btn=$('#'+btnId);
+  btn.onclick=async()=>{
+    const msg=$('#'+inpId).value.trim(); if(!msg) return;
+    const out=$('#'+outId); out.innerHTML='<span class="cursor"></span>';
+    btn.disabled=true;
+    let txt='';
+    await apiStream(path, bodyFn(msg),
+      tok=>{ txt+=tok; out.innerHTML=esc(txt)+'<span class="cursor"></span>'; out.scrollTop=out.scrollHeight; },
+      ()=>{ out.innerHTML=esc(txt); btn.disabled=false; toast('Stream complete','ok',1500); },
+      e=>{ out.innerHTML='<span style="color:var(--re)">Error: '+esc(e.message)+'</span>'; btn.disabled=false; toast(e.message,'err'); }
+    );
+  };
+}
+function clearStream(){ $$('.stream-box').forEach(b=>b.innerHTML='<span class="cursor"></span>'); }
+
+/* STRUCTURED OUTPUT */
+const pageStructured = {
+  html: `
+    <div class="page-header"><div class="page-title">📊 Structured Output</div><div class="page-sub">AI responses auto-deserialized into typed Java records</div></div>
+    <div data-tabs="so"><div class="tabs">
+      <button class="tab on" onclick="switchTab('so',0)">😊 Sentiment</button>
+      <button class="tab" onclick="switchTab('so',1)">🏷️ Entity Extraction</button>
+      <button class="tab" onclick="switchTab('so',2)">📝 Summarize</button>
+      <button class="tab" onclick="switchTab('so',3)">💻 Code Review</button>
+    </div></div>
+
+    <div data-panel="so" class="tab-panel on">
+      <div class="inp-group"><label class="inp-label">Text to analyze</label><textarea class="inp" id="so-sent-txt" rows="4">I absolutely loved the new product launch! The team worked incredibly hard and the results speak for themselves. Sure, there were a few hiccups, but overall it was a fantastic success.</textarea></div>
+      <button class="btn btn-primary" id="so-sent-btn">Analyze Sentiment</button>
+      <div id="so-sent-out"></div>
+    </div>
+
+    <div data-panel="so" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Text for entity extraction</label><textarea class="inp" id="so-ent-txt" rows="4">Elon Musk visited Berlin on March 15, 2024 to meet with Tesla engineers. The company plans to expand its Gigafactory in Brandenburg, Germany before Q4 2024.</textarea></div>
+      <button class="btn btn-primary" id="so-ent-btn">Extract Entities</button>
+      <div id="so-ent-out"></div>
+    </div>
+
+    <div data-panel="so" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Text to summarize</label><textarea class="inp" id="so-sum-txt" rows="5">Artificial intelligence (AI) is intelligence demonstrated by machines, in contrast to the natural intelligence displayed by animals including humans. AI research has been defined as the field of study of intelligent agents, which refers to any system that perceives its environment and takes actions that maximize its chance of achieving its goals. The term "artificial intelligence" had previously been used to describe machines that mimic and display "human" cognitive skills associated with the human mind, such as learning and problem-solving.</textarea></div>
+      <button class="btn btn-primary" id="so-sum-btn">Summarize</button>
+      <div id="so-sum-out"></div>
+    </div>
+
+    <div data-panel="so" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Language</label><select class="inp" id="so-cr-lang" style="width:180px"><option>java</option><option>python</option><option>javascript</option><option>typescript</option><option>go</option><option>rust</option></select></div>
+      <div class="inp-group"><label class="inp-label">Code to review</label><textarea class="inp" id="so-cr-code" rows="8" style="font-family:monospace">public class UserService {
+    public String getUser(int id) {
+        String query = "SELECT * FROM users WHERE id = " + id;
+        // execute query...
+        return result;
+    }
+
+    public void saveUser(String name, String password) {
+        // stores password in plaintext
+        db.execute("INSERT INTO users VALUES('" + name + "','" + password + "')");
+    }
+}</textarea></div>
+      <button class="btn btn-primary" id="so-cr-btn">Review Code</button>
+      <div id="so-cr-out"></div>
+    </div>`,
+  init() {
+    setupStructured('so-sent-btn','so-sent-txt','/api/structured/sentiment','text','so-sent-out');
+    setupStructured('so-ent-btn','so-ent-txt','/api/structured/extract-entities','text','so-ent-out');
+    setupStructured('so-sum-btn','so-sum-txt','/api/structured/summarize','text','so-sum-out');
+    $('#so-cr-btn').onclick=async()=>{
+      const btn=$('#so-cr-btn'); btn.disabled=true;
+      try {
+        const data=await apiPost('/api/structured/code-review',{code:$('#so-cr-code').value,language:$('#so-cr-lang').value});
+        $('#so-cr-out').innerHTML=respBox(data,[badge('Spring AI','b-green'),badge('Claude','b-orange'),badge('Code Review','b-blue')]);
+      } catch(e){toast(e.message,'err');}
+      btn.disabled=false;
+    };
+  }
+};
+
+function setupStructured(btnId, txtId, path, field, outId) {
+  $('#'+btnId).onclick=async()=>{
+    const btn=$('#'+btnId); btn.disabled=true;
+    try {
+      const body={}; body[field]=$('#'+txtId).value;
+      const data=await apiPost(path,body);
+      $('#'+outId).innerHTML=respBox(data,[badge('Spring AI','b-green'),badge('Claude','b-orange')]);
+    } catch(e){toast(e.message,'err');}
+    btn.disabled=false;
+  };
+}
+
+/* TEMPLATES */
+const pageTemplates = {
+  html: `
+    <div class="page-header"><div class="page-title">📝 Prompt Templates</div><div class="page-sub">Dynamic prompts with variables filled at runtime</div></div>
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('tp',0)">🌐 Translate</button>
+      <button class="tab" onclick="switchTab('tp',1)">📧 Email Generator</button>
+      <button class="tab" onclick="switchTab('tp',2)">🧑‍🏫 Explain</button>
+      <button class="tab" onclick="switchTab('tp',3)">🧪 Generate Tests</button>
+    </div>
+
+    <div data-panel="tp" class="tab-panel on">
+      <div class="grid-2">
+        <div class="inp-group"><label class="inp-label">Text to translate</label><textarea class="inp" id="tp-tr-txt" rows="4">The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet.</textarea></div>
+        <div>
+          <div class="inp-group"><label class="inp-label">Target Language</label><select class="inp" id="tp-tr-lang"><option>Spanish</option><option>French</option><option>German</option><option>Japanese</option><option>Arabic</option><option>Hindi</option><option>Portuguese</option><option>Italian</option><option>Chinese</option><option>Korean</option></select></div>
+          <div class="inp-group"><label class="inp-label">Tone</label><select class="inp" id="tp-tr-tone"><option>neutral</option><option>formal</option><option>informal</option><option>poetic</option></select></div>
+          <button class="btn btn-primary" id="tp-tr-btn">Translate</button>
+        </div>
+      </div>
+      <div id="tp-tr-out"></div>
+    </div>
+
+    <div data-panel="tp" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Email Purpose</label><input class="inp" id="tp-em-pur" value="Request for project deadline extension"></div>
+          <div class="inp-group"><label class="inp-label">Recipient Role</label><input class="inp" id="tp-em-rec" value="Project Manager"></div>
+          <div class="inp-group"><label class="inp-label">Sender Name</label><input class="inp" id="tp-em-sen" value="Pandurang"></div>
+          <div class="inp-group"><label class="inp-label">Key Points</label><textarea class="inp" id="tp-em-pts" rows="3">Team was sick, external dependency delayed, need 1 extra week</textarea></div>
+          <button class="btn btn-primary" id="tp-em-btn">Generate Email</button>
+        </div>
+        <div id="tp-em-out" style="margin-top:0"></div>
+      </div>
+    </div>
+
+    <div data-panel="tp" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Concept</label><input class="inp" id="tp-ex-con" value="Dependency Injection in Spring Framework"></div>
+          <div class="inp-group"><label class="inp-label">Audience Level</label><select class="inp" id="tp-ex-lvl"><option>beginner</option><option selected>intermediate</option><option>advanced</option><option>expert</option></select></div>
+          <div class="inp-group"><label class="inp-label">Domain</label><input class="inp" id="tp-ex-dom" value="software engineering"></div>
+          <button class="btn btn-primary" id="tp-ex-btn">Explain</button>
+        </div>
+        <div id="tp-ex-out"></div>
+      </div>
+    </div>
+
+    <div data-panel="tp" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Language</label><select class="inp" id="tp-te-lang"><option>java</option><option>python</option><option>javascript</option></select></div>
+          <div class="inp-group"><label class="inp-label">Test Framework</label><select class="inp" id="tp-te-fw"><option>JUnit 5</option><option>Mockito</option><option>pytest</option><option>Jest</option></select></div>
+          <div class="inp-group"><label class="inp-label">Code</label><textarea class="inp" id="tp-te-code" rows="6" style="font-family:monospace">public class Calculator {
+    public double divide(double a, double b) {
+        if(b == 0) throw new IllegalArgumentException("Division by zero");
+        return a / b;
+    }
+}</textarea></div>
+          <button class="btn btn-primary" id="tp-te-btn">Generate Tests</button>
+        </div>
+        <div id="tp-te-out"></div>
+      </div>
+    </div>`,
+  init() {
+    $('#tp-tr-btn').onclick=async()=>{
+      const btn=$('#tp-tr-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/template/translate',{text:$('#tp-tr-txt').value,language:$('#tp-tr-lang').value,tone:$('#tp-tr-tone').value}); $('#tp-tr-out').innerHTML=respBox(d,[badge('Spring AI','b-green')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+    $('#tp-em-btn').onclick=async()=>{
+      const btn=$('#tp-em-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/template/email',{purpose:$('#tp-em-pur').value,recipientRole:$('#tp-em-rec').value,senderName:$('#tp-em-sen').value,keyPoints:$('#tp-em-pts').value}); $('#tp-em-out').innerHTML=respBox(d,[badge('Spring AI','b-green')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+    $('#tp-ex-btn').onclick=async()=>{
+      const btn=$('#tp-ex-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/template/explain',{concept:$('#tp-ex-con').value,audienceLevel:$('#tp-ex-lvl').value,domain:$('#tp-ex-dom').value}); $('#tp-ex-out').innerHTML=respBox(d,[badge('Spring AI','b-green')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+    $('#tp-te-btn').onclick=async()=>{
+      const btn=$('#tp-te-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/template/generate-tests',{code:$('#tp-te-code').value,language:$('#tp-te-lang').value,testFramework:$('#tp-te-fw').value}); $('#tp-te-out').innerHTML=respBox(d,[badge('Spring AI','b-green')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+  }
+};
+
+/* VISION */
+const pageVision = {
+  html: `
+    <div class="page-header"><div class="page-title">👁️ Vision / Multimodal</div><div class="page-sub">Claude reads and analyzes images from URLs</div></div>
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('vi',0)">🔍 Analyze</button>
+      <button class="tab" onclick="switchTab('vi',1)">📄 Describe</button>
+      <button class="tab" onclick="switchTab('vi',2)">🔤 Extract Text (OCR)</button>
+      <button class="tab" onclick="switchTab('vi',3)">⚖️ Compare Two Images</button>
+    </div>
+
+    <div data-panel="vi" class="tab-panel on">
+      <div class="inp-group"><label class="inp-label">Image URL</label><input class="inp" id="vi-an-url" value="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"></div>
+      <div class="inp-group"><label class="inp-label">Question</label><input class="inp" id="vi-an-q" value="What do you see in this image? Describe it in detail."></div>
+      <button class="btn btn-primary" id="vi-an-btn">Analyze</button>
+      <div id="vi-an-out"></div>
+    </div>
+
+    <div data-panel="vi" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Image URL</label><input class="inp" id="vi-de-url" value="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"></div>
+      <button class="btn btn-primary" id="vi-de-btn">Describe</button>
+      <div id="vi-de-out"></div>
+    </div>
+
+    <div data-panel="vi" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Image URL (with text)</label><input class="inp" id="vi-oc-url" value="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"></div>
+      <button class="btn btn-primary" id="vi-oc-btn">Extract Text</button>
+      <div id="vi-oc-out"></div>
+    </div>
+
+    <div data-panel="vi" class="tab-panel">
+      <div class="grid-2">
+        <div class="inp-group"><label class="inp-label">Image URL 1</label><input class="inp" id="vi-cm-u1" value="https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png"></div>
+        <div class="inp-group"><label class="inp-label">Image URL 2</label><input class="inp" id="vi-cm-u2" value="https://upload.wikimedia.org/wikipedia/commons/3/3f/Bikesgray.jpg"></div>
+      </div>
+      <div class="inp-group"><label class="inp-label">Comparison Aspect</label><input class="inp" id="vi-cm-as" value="overall visual composition and content"></div>
+      <button class="btn btn-primary" id="vi-cm-btn">Compare</button>
+      <div id="vi-cm-out"></div>
+    </div>`,
+  init() {
+    [['vi-an-btn','vi-an-out',()=>({imageUrl:$('#vi-an-url').value,question:$('#vi-an-q').value}),'/api/multimodal/analyze'],
+     ['vi-de-btn','vi-de-out',()=>({imageUrl:$('#vi-de-url').value}),'/api/multimodal/describe'],
+     ['vi-oc-btn','vi-oc-out',()=>({imageUrl:$('#vi-oc-url').value}),'/api/multimodal/extract-text'],
+     ['vi-cm-btn','vi-cm-out',()=>({imageUrl1:$('#vi-cm-u1').value,imageUrl2:$('#vi-cm-u2').value,aspect:$('#vi-cm-as').value}),'/api/multimodal/compare'],
+    ].forEach(([btn,out,body,path])=>{
+      $('#'+btn).onclick=async()=>{
+        const b=$('#'+btn); b.disabled=true;
+        try { const d=await apiPost(path,body()); $('#'+out).innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Claude Vision','b-orange')]); }
+        catch(e){toast(e.message,'err');} b.disabled=false;
+      };
+    });
+  }
+};
+
+/* TOOLS */
+const pageTools = {
+  html: `
+    <div class="page-header"><div class="page-title">🔧 Tools Playground</div><div class="page-sub">Test all 15 AI-callable tool functions directly</div></div>
+    <div class="grid-auto">
+
+      <div class="card"><div class="card-title">📅 Date & Time</div>
+        <button class="btn btn-secondary btn-sm" id="t-dt">Get Now</button><div id="t-dt-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🆔 UUID Generator</div>
+        <button class="btn btn-secondary btn-sm" id="t-uu">Generate</button><div id="t-uu-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🖥️ System Info</div>
+        <button class="btn btn-secondary btn-sm" id="t-si">Get Info</button><div id="t-si-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🧮 Calculator</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input class="inp" id="t-ca-a" value="42" style="width:70px">
+          <select class="inp" id="t-ca-op" style="width:60px"><option>+</option><option>-</option><option>*</option><option>/</option></select>
+          <input class="inp" id="t-ca-b" value="58" style="width:70px">
+          <button class="btn btn-secondary btn-sm" id="t-ca">=</button>
+        </div>
+        <div id="t-ca-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🎲 Random Number</div>
+        <div style="display:flex;gap:6px"><input class="inp" id="t-rn-mn" value="1" placeholder="min" style="width:80px"><input class="inp" id="t-rn-mx" value="100" placeholder="max" style="width:80px"><button class="btn btn-secondary btn-sm" id="t-rn">Roll</button></div>
+        <div id="t-rn-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🌡️ Temperature Convert</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <input class="inp" id="t-tc-v" value="100" style="width:70px">
+          <select class="inp" id="t-tc-f" style="width:60px"><option>C</option><option>F</option><option>K</option></select>
+          <span style="align-self:center;color:var(--t2)">→</span>
+          <select class="inp" id="t-tc-t" style="width:60px"><option>F</option><option>C</option><option>K</option></select>
+          <button class="btn btn-secondary btn-sm" id="t-tc">Convert</button>
+        </div>
+        <div id="t-tc-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🔤 Text Transform</div>
+        <div class="inp-group" style="margin-bottom:6px"><input class="inp" id="t-tt-v" placeholder="Enter text..." value="Hello World"></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" id="t-tt-up">UPPER</button>
+          <button class="btn btn-secondary btn-sm" id="t-tt-lo">lower</button>
+        </div>
+        <div id="t-tt-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">📊 Word Count</div>
+        <textarea class="inp" id="t-wc-v" rows="3" placeholder="Paste text here...">The quick brown fox jumps over the lazy dog.</textarea>
+        <button class="btn btn-secondary btn-sm" style="margin-top:6px" id="t-wc">Count</button>
+        <div id="t-wc-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">🔐 Base64</div>
+        <textarea class="inp" id="t-b64-v" rows="2" placeholder="Text to encode/decode...">Hello, Java AI World!</textarea>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn btn-secondary btn-sm" id="t-b64-en">Encode</button>
+          <button class="btn btn-secondary btn-sm" id="t-b64-de">Decode</button>
+        </div>
+        <div id="t-b64-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card" style="grid-column:span 2"><div class="card-title">📝 Notes (CRUD)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <input class="inp" id="t-no-k" placeholder="note key" style="width:120px" value="myNote">
+          <input class="inp" id="t-no-v" placeholder="note content" style="flex:1" value="Remember to test all endpoints!">
+          <button class="btn btn-green btn-sm" id="t-no-save">Save</button>
+          <button class="btn btn-secondary btn-sm" id="t-no-get">Get</button>
+          <button class="btn btn-secondary btn-sm" id="t-no-all">List All</button>
+          <button class="btn btn-danger btn-sm" id="t-no-del">Delete</button>
+        </div>
+        <div id="t-no-o" class="resp-box" style="display:none"></div></div>
+
+      <div class="card"><div class="card-title">🔍 Web Search</div>
+        <div style="display:flex;gap:6px"><input class="inp" id="t-ws-q" placeholder="Search query..." value="Spring AI 1.0 features"><button class="btn btn-secondary btn-sm" id="t-ws">Search</button></div>
+        <div id="t-ws-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+      <div class="card"><div class="card-title">📁 Directory List</div>
+        <div style="display:flex;gap:6px"><input class="inp" id="t-dl-p" placeholder="Absolute path..." value="C:\\"><button class="btn btn-secondary btn-sm" id="t-dl">List</button></div>
+        <div id="t-dl-o" class="resp-box" style="margin-top:8px;display:none"></div></div>
+
+    </div>`,
+  init() {
+    const show=(id,data)=>{ const el=$('#'+id); el.style.display='block'; el.innerHTML=`<pre>${esc(fmt(data))}</pre>`; };
+    const go=(id,outId,fn)=>{ $('#'+id).onclick=async()=>{ try{const d=await fn();show(outId,d);}catch(e){toast(e.message,'err');} }; };
+    go('t-dt','t-dt-o',()=>apiGet('/api/tools/datetime'));
+    go('t-uu','t-uu-o',()=>apiGet('/api/tools/uuid'));
+    go('t-si','t-si-o',()=>apiGet('/api/tools/system-info'));
+    go('t-ca','t-ca-o',()=>apiPost('/api/tools/calculate',{a:$('#t-ca-a').value,operator:$('#t-ca-op').value,b:$('#t-ca-b').value}));
+    go('t-rn','t-rn-o',()=>apiGet('/api/tools/random?min='+$('#t-rn-mn').value+'&max='+$('#t-rn-mx').value));
+    go('t-tc','t-tc-o',()=>apiPost('/api/tools/temperature/convert',{value:$('#t-tc-v').value,from:$('#t-tc-f').value,to:$('#t-tc-t').value}));
+    go('t-tt-up','t-tt-o',()=>apiPost('/api/tools/text/transform',{text:$('#t-tt-v').value,transformation:'upper'}));
+    go('t-tt-lo','t-tt-o',()=>apiPost('/api/tools/text/transform',{text:$('#t-tt-v').value,transformation:'lower'}));
+    go('t-wc','t-wc-o',()=>apiPost('/api/tools/text/word-count',{text:$('#t-wc-v').value}));
+    go('t-b64-en','t-b64-o',()=>apiPost('/api/tools/base64/encode',{text:$('#t-b64-v').value}));
+    go('t-b64-de','t-b64-o',()=>apiPost('/api/tools/base64/decode',{encoded:$('#t-b64-v').value}));
+    go('t-no-save','t-no-o',()=>apiPost('/api/tools/notes',{key:$('#t-no-k').value,content:$('#t-no-v').value}));
+    go('t-no-get','t-no-o',()=>apiGet('/api/tools/notes/'+$('#t-no-k').value));
+    go('t-no-all','t-no-o',()=>apiGet('/api/tools/notes'));
+    go('t-no-del','t-no-o',()=>apiDel('/api/tools/notes/'+$('#t-no-k').value));
+    go('t-ws','t-ws-o',()=>apiGet('/api/tools/search?query='+encodeURIComponent($('#t-ws-q').value)));
+    go('t-dl','t-dl-o',()=>apiGet('/api/tools/directory?path='+encodeURIComponent($('#t-dl-p').value)));
+  }
+};
+
+/* MODEL CONFIG */
+const pageModelConfig = {
+  html: `
+    <div class="page-header"><div class="page-title">⚙️ Model Config</div><div class="page-sub">Override model parameters per request — no restart needed</div></div>
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('mc',0)">🎨 Creative</button>
+      <button class="tab" onclick="switchTab('mc',1)">🎯 Precise</button>
+      <button class="tab" onclick="switchTab('mc',2)">⚡ Fast (Haiku)</button>
+      <button class="tab" onclick="switchTab('mc',3)">🎭 Persona</button>
+      <button class="tab" onclick="switchTab('mc',4)">🛠️ Custom</button>
+    </div>
+    ${['creative','precise','fast'].map((m,i)=>`
+      <div data-panel="mc" class="tab-panel ${i===0?'on':''}">
+        <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--t2)">
+          ${m==='creative'?'Temperature 0.95 — imaginative, varied, unexpected responses':m==='precise'?'Temperature 0.1 — deterministic, factual, consistent responses':'Uses claude-haiku model for ultra-low latency'}
+        </div>
+        <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="mc-${m}-msg" rows="3">${m==='creative'?'Write a short story about a robot who discovers emotions':'What is the capital of Australia?'}</textarea></div>
+        <button class="btn btn-primary" id="mc-${m}-btn">Send (${m})</button>
+        <div id="mc-${m}-out"></div>
+      </div>`).join('')}
+    <div data-panel="mc" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Role</label><input class="inp" id="mc-pe-role" value="Senior Java architect with 20 years experience"></div>
+          <div class="inp-group"><label class="inp-label">Language</label><input class="inp" id="mc-pe-lang" value="English"></div>
+          <div class="inp-group"><label class="inp-label">Style</label><input class="inp" id="mc-pe-style" value="concise and technical with code examples"></div>
+          <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="mc-pe-msg" rows="3">What is the best way to handle transactions in Spring Boot?</textarea></div>
+          <button class="btn btn-primary" id="mc-pe-btn">Send with Persona</button>
+        </div>
+        <div id="mc-pe-out" style="margin-top:0"></div>
+      </div>
+    </div>
+    <div data-panel="mc" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="mc-cu-msg" rows="3">Explain machine learning in one paragraph.</textarea></div>
+          <div class="inp-group"><label class="inp-label">Temperature (0-1)</label><input class="inp" id="mc-cu-temp" type="number" min="0" max="1" step="0.1" value="0.7"></div>
+          <div class="inp-group"><label class="inp-label">Max Tokens</label><input class="inp" id="mc-cu-tok" type="number" value="500"></div>
+          <div class="inp-group"><label class="inp-label">Model</label><select class="inp" id="mc-cu-mod"><option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet (default)</option><option value="claude-3-haiku-20240307">claude-3-haiku (fast)</option><option value="claude-3-opus-20240229">claude-3-opus (powerful)</option></select></div>
+          <button class="btn btn-primary" id="mc-cu-btn">Send Custom</button>
+        </div>
+        <div id="mc-cu-out" style="margin-top:0"></div>
+      </div>
+    </div>`,
+  init() {
+    ['creative','precise','fast'].forEach(m=>{
+      $('#mc-'+m+'-btn').onclick=async()=>{
+        const btn=$('#mc-'+m+'-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/model-config/'+m,{message:$('#mc-'+m+'-msg').value}); $('#mc-'+m+'-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge(m,'b-purple')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    });
+    $('#mc-pe-btn').onclick=async()=>{
+      const btn=$('#mc-pe-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/model-config/with-persona',{message:$('#mc-pe-msg').value,role:$('#mc-pe-role').value,language:$('#mc-pe-lang').value,style:$('#mc-pe-style').value}); $('#mc-pe-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Persona','b-orange')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+    $('#mc-cu-btn').onclick=async()=>{
+      const btn=$('#mc-cu-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/model-config/chat',{message:$('#mc-cu-msg').value,temperature:parseFloat($('#mc-cu-temp').value),maxTokens:parseInt($('#mc-cu-tok').value),model:$('#mc-cu-mod').value}); $('#mc-cu-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Custom','b-blue')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };
+  }
+};
+
+/* CONVERSATION MEMORY */
+const pageMemory = {
+  html: `
+    <div class="page-header"><div class="page-title">🧠 Conversation Memory</div><div class="page-sub">Each session keeps its own history — AI remembers across turns</div></div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;align-items:center">
+        <label class="inp-label" style="white-space:nowrap;margin:0">Session ID:</label>
+        <input class="inp" id="mem-sid" value="session-1" style="width:140px">
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="memNewSession()">+ New Session</button>
+      <button class="btn btn-danger btn-sm" id="mem-clr">Clear Session</button>
+      <button class="btn btn-secondary btn-sm" id="mem-list">List Sessions</button>
+    </div>
+    <div id="mem-sessions-out" style="display:none;margin-bottom:12px"></div>
+    <div class="chat-wrap">
+      <div class="chat-messages" id="cm-memory"></div>
+      <div class="chat-input-area">
+        <textarea class="inp" id="ci-memory" placeholder="Say something… the AI will remember" rows="2"></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn btn-primary" id="mem-send">Send</button>
+        </div>
+      </div>
+    </div>`,
+  init() {
+    if(!S.chats['memory']) S.chats['memory']={};
+    const getSession=()=>$('#mem-sid').value.trim()||'session-1';
+    const getMsgs=()=>S.chats['memory'][getSession()]||[];
+    const setMsgs=m=>{ S.chats['memory'][getSession()]=m; };
+
+    const renderMem=()=>{ const el=$('#cm-memory'); if(el) el.innerHTML=chatHtml(getMsgs()); scrollChat('memory'); };
+
+    $('#mem-sid').oninput=renderMem;
+    renderMem();
+
+    const send=async()=>{
+      const msg=$('#ci-memory').value.trim(); if(!msg) return;
+      const sid=getSession();
+      $('#ci-memory').value=''; $('#mem-send').disabled=true;
+      const msgs=getMsgs(); msgs.push({role:'user',content:msg}); setMsgs(msgs); renderMem();
+      try {
+        const d=await apiPost('/api/conversation/'+sid+'/chat',{message:msg});
+        const resp=d.response||JSON.stringify(d);
+        msgs.push({role:'ai',content:resp,meta:{session:sid}}); setMsgs(msgs);
+      } catch(e){ getMsgs().push({role:'error',content:e.message}); toast(e.message,'err'); }
+      $('#mem-send').disabled=false; renderMem();
+    };
+    $('#mem-send').onclick=send;
+    $('#ci-memory').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}};
+    $('#mem-clr').onclick=async()=>{
+      try { await apiDel('/api/conversation/'+getSession()); delete S.chats['memory'][getSession()]; renderMem(); toast('Session cleared','ok'); }
+      catch(e){toast(e.message,'err');}
+    };
+    $('#mem-list').onclick=async()=>{
+      try { const d=await apiGet('/api/conversation/sessions'); const out=$('#mem-sessions-out'); out.style.display='block'; out.innerHTML=respBox(d,[badge('Active Sessions','b-blue')]); }
+      catch(e){toast(e.message,'err');}
+    };
+  }
+};
+function memNewSession(){ const n='session-'+uid(); if($('#mem-sid')) $('#mem-sid').value=n; }
+
+/* OUTPUT CONVERTERS */
+const pageOutputConv = {
+  html: `
+    <div class="page-header"><div class="page-title">🔄 Output Converters</div><div class="page-sub">Three conversion strategies from the same AI response</div></div>
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab('oc',0)">🗺️ Map Converter</button>
+      <button class="tab" onclick="switchTab('oc',1)">📋 List Converter</button>
+      <button class="tab" onclick="switchTab('oc',2)">🫘 Bean Converter</button>
+    </div>
+    ${[['oc-map','Map','map','prompt','List the top 5 programming languages with their primary use cases as key-value pairs'],
+       ['oc-list','List','list','prompt','Name 7 popular databases used in enterprise applications'],
+       ['oc-bean','Bean','bean','text','The team delivered excellent results this quarter despite tight deadlines']].map(([p,l,ep,f,ex],i)=>`
+      <div data-panel="oc" class="tab-panel ${i===0?'on':''}">
+        <div style="background:var(--s2);border-radius:8px;padding:10px;font-size:12px;color:var(--t2);margin-bottom:12px">Returns: <code class="code">Map&lt;String,Object&gt;</code>${l==='List'?' → <code class="code">List&lt;String&gt;</code>':l==='Bean'?' → typed Java record + raw JSON':''}</div>
+        <div class="inp-group"><label class="inp-label">${f==='prompt'?'Prompt':'Text'}</label><textarea class="inp" id="${p}-inp" rows="3">${ex}</textarea></div>
+        <button class="btn btn-primary" id="${p}-btn">Convert via ${l}</button>
+        <div id="${p}-out"></div>
+      </div>`).join('')}`,
+  init() {
+    [['oc-map','/api/output/map','prompt'],['oc-list','/api/output/list','prompt'],['oc-bean','/api/output/bean','text']].forEach(([p,path,f])=>{
+      $('#'+p+'-btn').onclick=async()=>{
+        const btn=$('#'+p+'-btn'); btn.disabled=true;
+        try { const body={}; body[f]=$('#'+p+'-inp').value; const d=await apiPost(path,body); $('#'+p+'-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Output Converter','b-purple')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    });
+  }
+};
+
+/* ── GENERIC PROVIDER PAGE BUILDER ── */
+function buildProviderPage({id, title, subtitle, lib, libBadge, mainPath, streamPath, extraTabs=[]}) {
+  const hasStream = !!streamPath;
+  const allTabs = ['💬 Basic Chat', ...(hasStream?['🌊 Stream']:[] ), ...extraTabs.map(t=>t.label)];
+
+  return {
+    html: `
+      <div class="page-header"><div class="page-title">${title}</div><div class="page-sub">${subtitle}</div></div>
+      <div class="tabs">
+        ${allTabs.map((t,i)=>`<button class="tab ${i===0?'on':''}" onclick="switchTab('${id}',${i})">${t}</button>`).join('')}
+      </div>
+
+      <!-- Basic Chat -->
+      <div data-panel="${id}" class="tab-panel on">
+        ${(() => { if(!S.chats[id]) S.chats[id]=[]; return ''; })()}
+        <div class="chat-wrap">
+          <div class="chat-messages" id="cm-${id}">${chatHtml(S.chats[id])}</div>
+          <div class="chat-input-area">
+            <textarea class="inp" id="ci-${id}" placeholder="Type a message…" rows="2"></textarea>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn btn-primary" id="cs-${id}">Send</button>
+              <button class="btn btn-secondary btn-sm" onclick="clearChat('${id}')">Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stream -->
+      ${hasStream ? `<div data-panel="${id}" class="tab-panel">
+        <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="ss-${id}" rows="3" placeholder="Type a message to stream…">Tell me about the history of artificial intelligence in 3 paragraphs.</textarea></div>
+        <button class="btn btn-primary" id="sb-${id}">▶ Stream</button>
+        <div style="margin-top:12px">${streamBox('so-'+id)}</div>
+      </div>` : ''}
+
+      <!-- Extra tabs -->
+      ${extraTabs.map(t=>t.html(id)).join('')}
+    `,
+    init() {
+      // Basic chat
+      const btn=$(`#cs-${id}`), inp=$(`#ci-${id}`);
+      const send=async()=>{
+        const msg=inp.value.trim(); if(!msg) return;
+        inp.value=''; btn.disabled=true;
+        S.chats[id].push({role:'user',content:msg}); renderChat(id);
+        try {
+          const d=await apiPost(mainPath,{message:msg});
+          const content=d.response||d.result||JSON.stringify(d);
+          S.chats[id].push({role:'ai',content,meta:{library:d.library||lib,provider:d.provider||'',model:d.model||''}});
+        } catch(e){ S.chats[id].push({role:'error',content:'Error: '+e.message}); toast(e.message,'err'); }
+        btn.disabled=false; renderChat(id);
+      };
+      btn.onclick=send;
+      inp.onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} };
+      scrollChat(id);
+
+      // Stream
+      if(hasStream) setupStream('sb-'+id,'ss-'+id,'so-'+id,streamPath,m=>({message:m}));
+
+      // Extra tab inits
+      extraTabs.forEach(t=>t.init&&t.init(id));
+    }
+  };
+}
+
+/* ── SPRING AI PROVIDER PAGES ── */
+const pageSaiOpenai = buildProviderPage({
+  id:'sai-openai', title:'🤖 Spring AI — OpenAI', lib:'Spring AI',
+  subtitle:'ChatClient API backed by OpenAI GPT-4o-mini · Requires OPENAI_API_KEY',
+  mainPath:'/api/springai/openai/chat', streamPath:'/api/springai/openai/stream',
+  extraTabs:[{
+    label:'⚙️ Custom Options',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${id}-cu-msg" rows="3">Explain quantum computing briefly.</textarea></div>
+          <div class="inp-group"><label class="inp-label">Temperature (0-2)</label><input class="inp" id="${id}-cu-temp" type="number" min="0" max="2" step="0.1" value="0.7"></div>
+          <div class="inp-group"><label class="inp-label">Model</label><select class="inp" id="${id}-cu-mod"><option value="gpt-4o-mini">gpt-4o-mini</option><option value="gpt-4o">gpt-4o</option><option value="gpt-3.5-turbo">gpt-3.5-turbo</option></select></div>
+          <div class="inp-group"><label class="inp-label">Max Tokens</label><input class="inp" id="${id}-cu-tok" type="number" value="500"></div>
+          <button class="btn btn-primary" id="${id}-cu-btn">Send Custom</button>
+        </div>
+        <div id="${id}-cu-out" style="margin-top:0"></div>
+      </div>
+    </div>`,
+    init:id=>{
+      $('#'+id+'-cu-btn').onclick=async()=>{
+        const btn=$('#'+id+'-cu-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/springai/openai/chat/custom',{message:$('#'+id+'-cu-msg').value,temperature:parseFloat($('#'+id+'-cu-temp').value),model:$('#'+id+'-cu-mod').value,maxTokens:parseInt($('#'+id+'-cu-tok').value)}); $('#'+id+'-cu-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('OpenAI','b-blue')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    }
+  }]
+});
+
+const pageSaiOllama = buildProviderPage({
+  id:'sai-ollama', title:'🦙 Spring AI — Ollama', lib:'Spring AI',
+  subtitle:'Local inference · No API key needed · Requires Ollama running at localhost:11434',
+  mainPath:'/api/springai/ollama/chat', streamPath:'/api/springai/ollama/stream',
+  extraTabs:[{
+    label:'💬 With System Prompt',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">System Prompt</label><textarea class="inp" id="${id}-ws-sys" rows="2">You are a helpful coding assistant who always provides code examples.</textarea></div>
+      <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${id}-ws-msg" rows="3">How do I sort a list in Python?</textarea></div>
+      <button class="btn btn-primary" id="${id}-ws-btn">Send</button>
+      <div id="${id}-ws-out"></div>
+    </div>`,
+    init:id=>{
+      $('#'+id+'-ws-btn').onclick=async()=>{
+        const btn=$('#'+id+'-ws-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/springai/ollama/chat/with-system',{system:$('#'+id+'-ws-sys').value,message:$('#'+id+'-ws-msg').value}); $('#'+id+'-ws-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Ollama','b-purple')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    }
+  }]
+});
+
+const pageSaiMistral = buildProviderPage({
+  id:'sai-mistral', title:'🌊 Spring AI — Mistral AI', lib:'Spring AI',
+  subtitle:'ChatClient API backed by Mistral AI · Requires MISTRAL_API_KEY',
+  mainPath:'/api/springai/mistral/chat', streamPath:'/api/springai/mistral/stream',
+  extraTabs:[{
+    label:'⚙️ Custom Options',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${id}-cu-msg" rows="3">What makes Mistral AI different from other LLM providers?</textarea></div>
+          <div class="inp-group"><label class="inp-label">Temperature</label><input class="inp" id="${id}-cu-temp" type="number" min="0" max="1" step="0.1" value="0.7"></div>
+          <div class="inp-group"><label class="inp-label">Model</label><select class="inp" id="${id}-cu-mod"><option>mistral-small-latest</option><option>mistral-medium-latest</option><option>mistral-large-latest</option></select></div>
+          <button class="btn btn-primary" id="${id}-cu-btn">Send Custom</button>
+        </div>
+        <div id="${id}-cu-out" style="margin-top:0"></div>
+      </div>
+    </div>`,
+    init:id=>{
+      $('#'+id+'-cu-btn').onclick=async()=>{
+        const btn=$('#'+id+'-cu-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/springai/mistral/chat/custom',{message:$('#'+id+'-cu-msg').value,temperature:parseFloat($('#'+id+'-cu-temp').value),model:$('#'+id+'-cu-mod').value}); $('#'+id+'-cu-out').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Mistral','b-yellow')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    }
+  }]
+});
+
+/* ── LANGCHAIN4J PROVIDER PAGES ── */
+function lc4jExtraTabs(id, aiPath, memorySuffix, extraOpts=[]) {
+  return [
+    {
+      label:'🤖 AiServices',
+      html:xid=>`<div data-panel="${xid}" class="tab-panel">
+        <div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px;font-size:12px;color:var(--t2);margin-bottom:12px">LangChain4j AiServices: annotated Java interface proxy with @SystemMessage + @UserMessage</div>
+        <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${xid}-ai-msg" rows="3">What are the key principles of clean code?</textarea></div>
+        <button class="btn btn-primary" id="${xid}-ai-btn">Send via AiServices</button>
+        <div id="${xid}-ai-out"></div>
+      </div>`,
+      init:xid=>{ $('#'+xid+'-ai-btn').onclick=async()=>{
+        const btn=$('#'+xid+'-ai-btn'); btn.disabled=true;
+        try { const d=await apiPost(aiPath,{message:$('#'+xid+'-ai-msg').value}); $('#'+xid+'-ai-out').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('AiServices','b-blue')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };}
+    },
+    ...extraOpts,
+    {
+      label:'🧠 Memory Chat',
+      html:xid=>`<div data-panel="${xid}" class="tab-panel">
+        <div class="inp-group" style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1"><label class="inp-label">Session ID</label><input class="inp" id="${xid}-mc-sid" value="${xid}-session-1"></div>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('${xid}-mc-sid').value='${xid}-'+Math.random().toString(36).slice(2,6)">New</button>
+        </div>
+        <div class="chat-wrap" style="height:300px">
+          <div class="chat-messages" id="cm-${xid}-mc"></div>
+          <div class="chat-input-area">
+            <textarea class="inp" id="ci-${xid}-mc" placeholder="AI remembers within session" rows="2"></textarea>
+            <button class="btn btn-primary" id="cs-${xid}-mc">Send</button>
+          </div>
+        </div>
+      </div>`,
+      init:xid=>{
+        const k=xid+'-mc'; if(!S.chats[k]) S.chats[k]={};
+        const getMsgs=()=>S.chats[k][$('#'+xid+'-mc-sid').value]||[];
+        const setMsgs=m=>{ S.chats[k][$('#'+xid+'-mc-sid').value]=m; };
+        const renderMcm=()=>{ const el=$('#cm-'+xid+'-mc'); if(el){el.innerHTML=chatHtml(getMsgs());el.scrollTop=el.scrollHeight;} };
+        const send=async()=>{
+          const msg=$('#ci-'+xid+'-mc').value.trim(); if(!msg) return;
+          const sid=$('#'+xid+'-mc-sid').value;
+          $('#ci-'+xid+'-mc').value=''; $(`#cs-${xid}-mc`).disabled=true;
+          const msgs=getMsgs(); msgs.push({role:'user',content:msg}); setMsgs(msgs); renderMcm();
+          try {
+            const d=await apiPost(memorySuffix,{sessionId:sid,message:msg});
+            msgs.push({role:'ai',content:d.response||JSON.stringify(d),meta:{library:'LangChain4j',session:sid}}); setMsgs(msgs);
+          } catch(e){ getMsgs().push({role:'error',content:e.message}); toast(e.message,'err'); }
+          $(`#cs-${xid}-mc`).disabled=false; renderMcm();
+        };
+        $(`#cs-${xid}-mc`).onclick=send;
+        $(`#ci-${xid}-mc`).onkeydown=e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();} };
+      }
+    }
+  ];
+}
+
+const pageLc4jOpenai = buildProviderPage({
+  id:'lc4j-openai', title:'🤖 LangChain4j — OpenAI', lib:'LangChain4j',
+  subtitle:'Direct ChatLanguageModel.generate() + AiServices + streaming · Requires OPENAI_API_KEY',
+  mainPath:'/api/langchain4j/openai/chat', streamPath:'/api/langchain4j/openai/stream',
+  extraTabs: lc4jExtraTabs('lc4j-openai','/api/langchain4j/openai/ai-service','/api/langchain4j/openai/memory-chat',[{
+    label:'🎭 Persona',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Role</label><input class="inp" id="${id}-pe-role" value="pirate captain"></div>
+          <div class="inp-group"><label class="inp-label">Style</label><input class="inp" id="${id}-pe-style" value="dramatic and nautical with lots of sea metaphors"></div>
+          <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${id}-pe-msg" rows="3">Tell me about the best practices for REST API design.</textarea></div>
+          <button class="btn btn-primary" id="${id}-pe-btn">Send with Persona</button>
+        </div>
+        <div id="${id}-pe-out" style="margin-top:0"></div>
+      </div>
+    </div>`,
+    init:id=>{
+      $('#'+id+'-pe-btn').onclick=async()=>{
+        const btn=$('#'+id+'-pe-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/langchain4j/openai/ai-service/persona',{role:$('#'+id+'-pe-role').value,style:$('#'+id+'-pe-style').value,message:$('#'+id+'-pe-msg').value}); $('#'+id+'-pe-out').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('@V persona','b-orange')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    }
+  }])
+});
+
+const pageLc4jAnthropic = buildProviderPage({
+  id:'lc4j-anthropic', title:'🧠 LangChain4j — Anthropic', lib:'LangChain4j',
+  subtitle:'Claude via LangChain4j · Reuses SPRING_AI_ANTHROPIC_API_KEY',
+  mainPath:'/api/langchain4j/anthropic/chat', streamPath:null,
+  extraTabs: lc4jExtraTabs('lc4j-anthropic','/api/langchain4j/anthropic/ai-service','/api/langchain4j/anthropic/memory-chat',[{
+    label:'🎓 Expert Mode',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Expert Domain</label><input class="inp" id="${id}-ex-exp" value="distributed systems architecture"></div>
+          <div class="inp-group"><label class="inp-label">Depth</label><select class="inp" id="${id}-ex-dep"><option>introductory</option><option selected>intermediate</option><option>advanced</option><option>research-level</option></select></div>
+          <div class="inp-group"><label class="inp-label">Question</label><textarea class="inp" id="${id}-ex-msg" rows="3">What are the CAP theorem tradeoffs and how do modern databases handle them?</textarea></div>
+          <button class="btn btn-primary" id="${id}-ex-btn">Ask Expert</button>
+        </div>
+        <div id="${id}-ex-out" style="margin-top:0"></div>
+      </div>
+    </div>`,
+    init:id=>{
+      $('#'+id+'-ex-btn').onclick=async()=>{
+        const btn=$('#'+id+'-ex-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/langchain4j/anthropic/ai-service/expert',{expert:$('#'+id+'-ex-exp').value,depth:$('#'+id+'-ex-dep').value,message:$('#'+id+'-ex-msg').value}); $('#'+id+'-ex-out').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('Expert @V','b-orange')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    }
+  }])
+});
+
+const pageLc4jOllama = buildProviderPage({
+  id:'lc4j-ollama', title:'🦙 LangChain4j — Ollama', lib:'LangChain4j',
+  subtitle:'Local inference via LangChain4j · No API key needed',
+  mainPath:'/api/langchain4j/ollama/chat', streamPath:'/api/langchain4j/ollama/stream',
+  extraTabs:[{
+    label:'🤖 AiServices',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${id}-ai-msg" rows="3">Explain Docker containers in simple terms.</textarea></div>
+      <button class="btn btn-primary" id="${id}-ai-btn">Send via AiServices</button>
+      <div id="${id}-ai-out"></div>
+    </div>`,
+    init:id=>{ $('#'+id+'-ai-btn').onclick=async()=>{
+      const btn=$('#'+id+'-ai-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/langchain4j/ollama/ai-service',{message:$('#'+id+'-ai-msg').value}); $('#'+id+'-ai-out').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('Ollama','b-purple')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };}
+  }]
+});
+
+const pageLc4jGemini = buildProviderPage({
+  id:'lc4j-gemini', title:'💎 LangChain4j — Google Gemini', lib:'LangChain4j',
+  subtitle:'Google Gemini 1.5 Flash · Requires GEMINI_API_KEY (free tier available)',
+  mainPath:'/api/langchain4j/gemini/chat', streamPath:null,
+  extraTabs: lc4jExtraTabs('lc4j-gemini','/api/langchain4j/gemini/ai-service','/api/langchain4j/gemini/memory-chat',[{
+    label:'🏛️ Domain Expert',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="grid-2">
+        <div>
+          <div class="inp-group"><label class="inp-label">Domain</label><input class="inp" id="${id}-dm-dom" value="machine learning"></div>
+          <div class="inp-group"><label class="inp-label">Format</label><select class="inp" id="${id}-dm-fmt"><option>detailed</option><option>concise</option><option>bullet points</option><option>step-by-step</option></select></div>
+          <div class="inp-group"><label class="inp-label">Question</label><textarea class="inp" id="${id}-dm-msg" rows="3">What is gradient descent and how does it work?</textarea></div>
+          <button class="btn btn-primary" id="${id}-dm-btn">Ask Domain Expert</button>
+        </div>
+        <div id="${id}-dm-out" style="margin-top:0"></div>
+      </div>
+    </div>`,
+    init:id=>{
+      $('#'+id+'-dm-btn').onclick=async()=>{
+        const btn=$('#'+id+'-dm-btn'); btn.disabled=true;
+        try { const d=await apiPost('/api/langchain4j/gemini/ai-service/domain',{domain:$('#'+id+'-dm-dom').value,format:$('#'+id+'-dm-fmt').value,message:$('#'+id+'-dm-msg').value}); $('#'+id+'-dm-out').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('Gemini','b-blue'),badge('@V domain','b-orange')]); }
+        catch(e){toast(e.message,'err');} btn.disabled=false;
+      };
+    }
+  }])
+});
+
+const pageLc4jMistral = buildProviderPage({
+  id:'lc4j-mistral', title:'🌊 LangChain4j — Mistral AI', lib:'LangChain4j',
+  subtitle:'Mistral via LangChain4j · Requires MISTRAL_API_KEY',
+  mainPath:'/api/langchain4j/mistral/chat', streamPath:'/api/langchain4j/mistral/stream',
+  extraTabs:[{
+    label:'🤖 AiServices',
+    html:id=>`<div data-panel="${id}" class="tab-panel">
+      <div class="inp-group"><label class="inp-label">Message</label><textarea class="inp" id="${id}-ai-msg" rows="3">What makes Mistral's models unique compared to other LLMs?</textarea></div>
+      <button class="btn btn-primary" id="${id}-ai-btn">Send via AiServices</button>
+      <div id="${id}-ai-out"></div>
+    </div>`,
+    init:id=>{ $('#'+id+'-ai-btn').onclick=async()=>{
+      const btn=$('#'+id+'-ai-btn'); btn.disabled=true;
+      try { const d=await apiPost('/api/langchain4j/mistral/ai-service',{message:$('#'+id+'-ai-msg').value}); $('#'+id+'-ai-out').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('Mistral','b-yellow')]); }
+      catch(e){toast(e.message,'err');} btn.disabled=false;
+    };}
+  }]
+});
+
+/* COMPARISON PAGE */
+const pageComparison = {
+  html: `
+    <div class="page-header"><div class="page-title">🔀 Compare Providers</div><div class="page-sub">Send one message to multiple providers simultaneously — see responses side by side</div></div>
+    <div class="card" style="margin-bottom:18px">
+      <div class="inp-group"><label class="inp-label">Message (sent to all selected providers)</label>
+        <textarea class="inp" id="cmp-msg" rows="3">Explain the concept of recursion with a simple example.</textarea></div>
+      <div style="margin-bottom:14px">
+        <div class="inp-label" style="margin-bottom:8px">Select Providers</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          ${[
+            ['cmp-cl','🧠 Claude (Spring AI)',true],
+            ['cmp-oa','🤖 OpenAI (Spring AI)',true],
+            ['cmp-ms','🌊 Mistral (Spring AI)',false],
+            ['cmp-loa','🤖 OpenAI (LC4j)',false],
+            ['cmp-lcl','🧠 Claude (LC4j)',false],
+            ['cmp-gem','💎 Gemini (LC4j)',false],
+          ].map(([id,label,chk])=>`<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--s2);border:1px solid var(--bd);padding:6px 12px;border-radius:6px"><input type="checkbox" id="${id}" ${chk?'checked':''}> ${label}</label>`).join('')}
+        </div>
+      </div>
+      <button class="btn btn-primary" id="cmp-btn">⚡ Send to Selected Providers</button>
+    </div>
+    <div class="cmp-grid" id="cmp-results"></div>`,
+  init() {
+    $('#cmp-btn').onclick=async()=>{
+      const msg=$('#cmp-msg').value.trim(); if(!msg){toast('Enter a message','err');return;}
+      const btn=$('#cmp-btn'); btn.disabled=true; btn.textContent='Sending…';
+      const grid=$('#cmp-results'); grid.innerHTML='';
+      const providers=[
+        {id:'cmp-cl',  name:'🧠 Claude',        badge:'b-orange', path:'/api/agent/chat',                   body:{message:msg}, key:'response'},
+        {id:'cmp-oa',  name:'🤖 OpenAI (SAI)',   badge:'b-green',  path:'/api/springai/openai/chat',         body:{message:msg}, key:'response'},
+        {id:'cmp-ms',  name:'🌊 Mistral (SAI)',  badge:'b-yellow', path:'/api/springai/mistral/chat',        body:{message:msg}, key:'response'},
+        {id:'cmp-loa', name:'🤖 OpenAI (LC4j)', badge:'b-blue',   path:'/api/langchain4j/openai/chat',      body:{message:msg}, key:'response'},
+        {id:'cmp-lcl', name:'🧠 Claude (LC4j)', badge:'b-orange', path:'/api/langchain4j/anthropic/chat',   body:{message:msg}, key:'response'},
+        {id:'cmp-gem', name:'💎 Gemini',         badge:'b-blue',   path:'/api/langchain4j/gemini/chat',      body:{message:msg}, key:'response'},
+      ].filter(p=>$('#'+p.id)&&$('#'+p.id).checked);
+
+      if(!providers.length){toast('Select at least one provider','err');btn.disabled=false;btn.textContent='⚡ Send to Selected Providers';return;}
+
+      // Create placeholder cards
+      providers.forEach(p=>{
+        const card=document.createElement('div');
+        card.className='cmp-card'; card.id='cmp-c-'+p.id;
+        card.innerHTML=`<div class="cmp-card-header">${p.name} <span class="badge ${p.badge}" style="margin-left:auto">waiting</span></div><div class="loading-row"><span class="spinner"></span> Sending…</div>`;
+        grid.appendChild(card);
+      });
+
+      await Promise.all(providers.map(async p=>{
+        const card=$('#cmp-c-'+p.id);
+        try {
+          const d=await apiPost(p.path,p.body);
+          const resp=d[p.key]||d.response||JSON.stringify(d);
+          const lib=d.library||''; const prov=d.provider||'';
+          card.innerHTML=`<div class="cmp-card-header">${p.name} <span class="badge ${p.badge}" style="margin-left:auto">✓ done</span></div>
+            ${lib?`<div style="font-size:11px;color:var(--t2);margin-bottom:6px">${lib}${prov?' · '+prov:''}</div>`:''}
+            <div style="font-size:13px;line-height:1.6;color:var(--tx)">${esc(resp)}</div>
+            <button class="icon-btn btn-sm" style="margin-top:8px" onclick="copyText(${JSON.stringify(resp)})">Copy</button>`;
+        } catch(e){
+          card.innerHTML=`<div class="cmp-card-header">${p.name} <span class="badge b-red" style="margin-left:auto">error</span></div><div style="color:var(--re);font-size:13px">${esc(e.message)}</div>`;
+        }
+      }));
+      btn.disabled=false; btn.textContent='⚡ Send to Selected Providers';
+    };
+  }
+};
+
+/* ── ROUTE MAP ── */
+const PAGES = {
+  'dashboard':      pageDashboard,
+  'agent-chat':     pageAgentChat,
+  'stream-chat':    pageStreamChat,
+  'structured':     pageStructured,
+  'templates':      pageTemplates,
+  'vision':         pageVision,
+  'tools':          pageTools,
+  'model-config':   pageModelConfig,
+  'memory':         pageMemory,
+  'output-conv':    pageOutputConv,
+  'sai-openai':     pageSaiOpenai,
+  'sai-ollama':     pageSaiOllama,
+  'sai-mistral':    pageSaiMistral,
+  'lc4j-openai':    pageLc4jOpenai,
+  'lc4j-anthropic': pageLc4jAnthropic,
+  'lc4j-ollama':    pageLc4jOllama,
+  'lc4j-gemini':    pageLc4jGemini,
+  'lc4j-mistral':   pageLc4jMistral,
+  'comparison':     pageComparison,
+};
+
+const PAGE_LABELS = {
+  'dashboard':'Dashboard','agent-chat':'Agent Chat','stream-chat':'Stream Chat',
+  'structured':'Structured Output','templates':'Prompt Templates','vision':'Vision / Multimodal',
+  'tools':'Tools Playground','model-config':'Model Config','memory':'Conversation Memory',
+  'output-conv':'Output Converters','sai-openai':'Spring AI — OpenAI','sai-ollama':'Spring AI — Ollama',
+  'sai-mistral':'Spring AI — Mistral','lc4j-openai':'LC4j — OpenAI','lc4j-anthropic':'LC4j — Anthropic',
+  'lc4j-ollama':'LC4j — Ollama','lc4j-gemini':'LC4j — Gemini','lc4j-mistral':'LC4j — Mistral',
+  'comparison':'Compare Providers'
+};
+
+/* ── ROUTER ── */
+function navigate(page) {
+  const p = PAGES[page]; if(!p) return;
+  S.page = page;
+  // Update nav active state
+  $$('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
+  // Update page title
+  $('#page-title').textContent = PAGE_LABELS[page]||page;
+  // Render
+  const main=$('#main');
+  main.innerHTML = p.html;
+  if(p.init) p.init();
+}
+
+/* ── SIDEBAR ── */
+function buildSidebar() {
+  const tree=$('#nav-tree'); tree.innerHTML='';
+  NAV.forEach(entry=>{
+    if(entry.id) {
+      const el=document.createElement('div');
+      el.className='nav-item'; el.dataset.page=entry.id;
+      el.textContent=entry.label;
+      el.onclick=()=>navigate(entry.id);
+      tree.appendChild(el);
+    } else if(entry.group) {
+      const g=document.createElement('div'); g.className='nav-group';
+      const lbl=document.createElement('div'); lbl.className='nav-group-label'; lbl.textContent=entry.group;
+      g.appendChild(lbl);
+      entry.items.forEach(item=>{
+        const el=document.createElement('div');
+        el.className='nav-item'; el.dataset.page=item.id;
+        el.textContent=item.label;
+        el.onclick=()=>navigate(item.id);
+        g.appendChild(el);
+      });
+      tree.appendChild(g);
+    }
+  });
+}
+
+/* ── NAV SEARCH ── */
+function setupNavSearch() {
+  $('#nav-search').oninput=function(){
+    const q=this.value.toLowerCase();
+    $$('.nav-item').forEach(el=>{
+      el.style.display=(!q||el.textContent.toLowerCase().includes(q))?'':'none';
+    });
+    $$('.nav-group-label').forEach(el=>{
+      const visible=[...el.parentElement.querySelectorAll('.nav-item')].some(i=>i.style.display!=='none');
+      el.style.display=visible?'':'none';
+    });
+  };
+}
+
+/* ── THEME ── */
+function applyTheme(t) {
+  document.documentElement.dataset.theme=t;
+  $('#theme-btn').textContent=t==='dark'?'☀️':'🌙';
+  localStorage.setItem('th',t);
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  applyTheme(S.theme);
+  buildSidebar();
+  setupNavSearch();
+  navigate('dashboard');
+
+  $('#sb-toggle').onclick=()=>$('#sidebar').classList.toggle('closed');
+  $('#theme-btn').onclick=()=>applyTheme(S.theme==='dark'?'light':'dark');
+
+  // Check app health
+  apiGet('/api/agent/ping')
+    .then(()=>{ $('#app-dot').className='dot ok'; '#app-dot'.title='App is running'; })
+    .catch(()=>{ $('#app-dot').className='dot err'; });
+
+  // Keyboard shortcut: / to focus search
+  document.addEventListener('keydown',e=>{
+    if(e.key==='/' && document.activeElement.tagName!=='TEXTAREA' && document.activeElement.tagName!=='INPUT'){
+      e.preventDefault(); $('#nav-search').focus();
+    }
+  });
+});
+</script>
+</body>
+</html>
