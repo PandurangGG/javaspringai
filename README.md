@@ -11,7 +11,8 @@
 <p align="center">
   A production-ready agentic AI application built with <strong>Spring AI</strong> and <strong>Spring Boot 3</strong>,
   powered by <strong>Claude (Anthropic)</strong>. Features tool-calling, streaming, structured output,
-  prompt templates, vision (multimodal), and direct utility APIs — all documented with Swagger UI.
+  prompt templates, vision (multimodal), model configuration, multi-session memory,
+  output converters, and direct utility APIs — all documented with Swagger UI.
 </p>
 
 ---
@@ -21,6 +22,7 @@
 - [Architecture](#-architecture)
 - [Quick Start](#-quick-start)
 - [Swagger UI](#-swagger-ui)
+- [Spring AI Features Coverage](#-spring-ai-features-coverage)
 - [API Reference](#-api-reference)
   - [1. Agent — AI Chat with Tool Calling](#1--agent--ai-chat-with-tool-calling)
   - [2. Streaming — Server-Sent Events](#2--streaming--server-sent-events)
@@ -28,9 +30,35 @@
   - [4. Prompt Templates — Parameterized Prompts](#4--prompt-templates--parameterized-prompts)
   - [5. Multimodal — Vision & Image Analysis](#5--multimodal--vision--image-analysis)
   - [6. Agent Tools — Direct Utility Endpoints](#6--agent-tools--direct-utility-endpoints)
+  - [7. Model Configuration — AnthropicChatOptions & SimpleLoggerAdvisor](#7--model-configuration--anthropicchatoptions--simpleloggeradvisor)
+  - [8. Multi-Session Conversations](#8--multi-session-conversations)
+  - [9. Output Converters — Map, List & Explicit Bean](#9--output-converters--map-list--explicit-bean)
 - [Built-in Tools](#-built-in-tools)
 - [Project Structure](#-project-structure)
 - [Tech Stack](#-tech-stack)
+
+---
+
+## ✅ Spring AI Features Coverage
+
+Every Spring AI 1.0.0 feature available in this project's classpath is used across the 9 controllers:
+
+| Spring AI Feature | Class / API | Controller |
+|---|---|---|
+| ChatClient + Tool Calling | `ChatClient`, `@Tool`, `@ToolParam` | Agent |
+| Conversation Memory | `MessageChatMemoryAdvisor`, `MessageWindowChatMemory`, `InMemoryChatMemoryRepository` | Agent, Multi-Session |
+| SSE Streaming | `chatClient.stream().content()` → `Flux<String>` | Streaming |
+| Structured Output (implicit) | `chatClient.call().entity(Class)` via `BeanOutputConverter` | Structured Output |
+| Explicit BeanOutputConverter | `new BeanOutputConverter<>(Class)` + `getFormat()` + `convert()` | Output Converters |
+| MapOutputConverter | `new MapOutputConverter()` → `Map<String, Object>` | Output Converters |
+| ListOutputConverter | `new ListOutputConverter(ConversionService)` → `List<String>` | Output Converters |
+| PromptTemplate | `PromptTemplate.render(Map)` | Prompt Templates |
+| SystemPromptTemplate | `new SystemPromptTemplate(template).render(Map)` | Model Configuration |
+| ChatClient inline params | `chatClient.user(u -> u.text(...).param(...))` | Prompt Templates |
+| Multimodal / Vision | `chatClient.user(u -> u.media(mimeType, url))` | Multimodal |
+| AnthropicChatOptions | `AnthropicChatOptions.builder().temperature().maxTokens().model()` | Model Configuration |
+| SimpleLoggerAdvisor | `new SimpleLoggerAdvisor()` as default advisor | Model Configuration |
+| Multi-session Memory | Per-session `ChatClient` + isolated `InMemoryChatMemoryRepository` | Multi-Session |
 
 ---
 
@@ -844,6 +872,272 @@ These `@Tool`-annotated methods are available to the AI agent and exposed via `/
 
 ---
 
+### 7. ⚙️ Model Configuration — AnthropicChatOptions & SimpleLoggerAdvisor
+
+> Base URL: `/api/model-config`
+>
+> Showcases three Spring AI features not used anywhere else:
+> - **`AnthropicChatOptions`** — override temperature, maxTokens, and model per individual request
+> - **`SimpleLoggerAdvisor`** — logs every prompt and response at DEBUG level (check application logs)
+> - **`SystemPromptTemplate`** — build parameterized system prompts at runtime using `{variable}` placeholders
+
+#### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/model-config/chat` | Chat with fully custom model options |
+| `POST` | `/api/model-config/creative` | High-temperature preset (0.95) |
+| `POST` | `/api/model-config/precise` | Low-temperature preset (0.1) |
+| `POST` | `/api/model-config/fast` | Switch to Claude Haiku for fast responses |
+| `POST` | `/api/model-config/with-persona` | Dynamic AI persona via SystemPromptTemplate |
+
+---
+
+#### `POST /api/model-config/chat` — Custom options per request
+
+```bash
+curl -X POST http://localhost:8080/api/model-config/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Explain recursion in one sentence.",
+    "temperature": 0.3,
+    "maxTokens": 80,
+    "model": "claude-haiku-4-5-20251001"
+  }'
+```
+
+```json
+{ "response": "Recursion is a technique where a function solves a problem by calling itself with a smaller version of the same problem until it reaches a base case." }
+```
+
+---
+
+#### `POST /api/model-config/creative` — High temperature (0.95)
+
+```bash
+curl -X POST http://localhost:8080/api/model-config/creative \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Write a short whimsical story about a Java developer who discovers Spring AI."}'
+```
+
+```json
+{
+  "response": "Once upon a time in a land of curly braces and semicolons, a weary Java developer named Marco stared at his thousandth for-loop. Then one misty Tuesday morning, a peculiar dependency appeared in his pom.xml: Spring AI. With trembling fingers he typed his first chatClient.prompt()... and the code whispered back."
+}
+```
+
+---
+
+#### `POST /api/model-config/precise` — Low temperature (0.1)
+
+```bash
+curl -X POST http://localhost:8080/api/model-config/precise \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is the time complexity of binary search and why?"}'
+```
+
+```json
+{
+  "response": "Binary search has O(log n) time complexity. At each step it eliminates half the remaining search space by comparing the target against the midpoint, so the number of steps grows logarithmically with input size."
+}
+```
+
+---
+
+#### `POST /api/model-config/fast` — Claude Haiku model
+
+```bash
+curl -X POST http://localhost:8080/api/model-config/fast \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Give me 5 tips for writing clean Java code."}'
+```
+
+```json
+{
+  "response": "1. Use meaningful names for variables and methods.\n2. Keep methods short and single-purpose.\n3. Prefer composition over inheritance.\n4. Write tests before or alongside the code.\n5. Avoid magic numbers — use named constants."
+}
+```
+
+---
+
+#### `POST /api/model-config/with-persona` — SystemPromptTemplate
+
+```bash
+curl -X POST http://localhost:8080/api/model-config/with-persona \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Explain microservices.",
+    "role": "senior software architect",
+    "language": "English",
+    "style": "concise and technical"
+  }'
+```
+
+```json
+{
+  "response": "Microservices decompose a system into small, independently deployable services that each own a bounded domain, communicate via lightweight APIs (REST/gRPC/messaging), and can be scaled, deployed, and maintained independently — trading operational complexity for team autonomy and resilience."
+}
+```
+
+---
+
+### 8. 💬 Multi-Session Conversations
+
+> Base URL: `/api/conversation`
+>
+> Each named session gets its own `ChatClient` backed by a **dedicated `InMemoryChatMemoryRepository`**, ensuring sessions never share context. Sessions are created lazily and persist in-memory for the application lifetime.
+
+#### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/conversation/{sessionId}/chat` | Chat within a named session |
+| `GET`  | `/api/conversation/sessions` | List all active sessions |
+| `DELETE` | `/api/conversation/{sessionId}` | Clear a session |
+
+---
+
+#### Multi-turn memory within a session
+
+```bash
+# Turn 1 — introduce yourself in session "alice"
+curl -X POST http://localhost:8080/api/conversation/alice/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "My name is Pandurang and I work on Spring AI projects."}'
+```
+```json
+{ "sessionId": "alice", "response": "Nice to meet you, Pandurang! Spring AI is a great framework. What are you building?" }
+```
+
+```bash
+# Turn 2 — agent remembers the session context
+curl -X POST http://localhost:8080/api/conversation/alice/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is my name and what do I work on?"}'
+```
+```json
+{ "sessionId": "alice", "response": "Your name is Pandurang and you work on Spring AI projects." }
+```
+
+---
+
+#### Session isolation — different sessions, different contexts
+
+```bash
+# bob's session has no knowledge of alice's conversation
+curl -X POST http://localhost:8080/api/conversation/bob/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is my name?"}'
+```
+```json
+{ "sessionId": "bob", "response": "I don't know your name yet — you haven't told me!" }
+```
+
+---
+
+#### `GET /api/conversation/sessions`
+
+```bash
+curl http://localhost:8080/api/conversation/sessions
+```
+```json
+{ "sessions": ["alice", "bob"], "count": 2 }
+```
+
+---
+
+#### `DELETE /api/conversation/{sessionId}`
+
+```bash
+curl -X DELETE http://localhost:8080/api/conversation/alice
+```
+```json
+{ "sessionId": "alice", "cleared": true }
+```
+
+---
+
+### 9. 🔄 Output Converters — Map, List & Explicit Bean
+
+> Base URL: `/api/output`
+>
+> All three converters work the same way: `getFormat()` appends machine-readable output instructions to the prompt, the model responds with structured text, then `convert(String)` parses it into the target Java type.
+
+#### Endpoints
+
+| Method | Endpoint | Spring AI Class | Output type |
+|--------|----------|-----------------|-------------|
+| `POST` | `/api/output/map` | `MapOutputConverter` | `Map<String, Object>` |
+| `POST` | `/api/output/list` | `ListOutputConverter` | `List<String>` |
+| `POST` | `/api/output/bean` | `BeanOutputConverter<T>` (explicit) | typed bean + raw JSON |
+
+---
+
+#### `POST /api/output/map` — MapOutputConverter
+
+```bash
+curl -X POST http://localhost:8080/api/output/map \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Return a JSON map with facts about Spring Boot: year created, creator, latest version, primary use case."}'
+```
+
+```json
+{
+  "year_created": "2014",
+  "creator": "Pivotal (now VMware/Broadcom)",
+  "latest_version": "3.3.4",
+  "primary_use_case": "Rapid standalone Java application development"
+}
+```
+
+---
+
+#### `POST /api/output/list` — ListOutputConverter
+
+```bash
+curl -X POST http://localhost:8080/api/output/list \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "List the top 7 Spring AI features in order of importance."}'
+```
+
+```json
+[
+  "Tool Calling",
+  "Structured Output",
+  "Streaming",
+  "RAG",
+  "Multimodal",
+  "Prompt Templates",
+  "Conversation Memory"
+]
+```
+
+---
+
+#### `POST /api/output/bean` — Explicit BeanOutputConverter (with raw JSON)
+
+Unlike `/api/structured/sentiment` which uses `chatClient.entity()` internally, this endpoint uses `BeanOutputConverter` directly and exposes **both** the raw model output and the parsed Java record — useful for debugging or custom post-processing.
+
+```bash
+curl -X POST http://localhost:8080/api/output/bean \
+  -H "Content-Type: application/json" \
+  -d '{"text": "I am really excited about building AI apps with Spring AI!"}'
+```
+
+```json
+{
+  "raw": "{\"sentiment\": \"POSITIVE\", \"score\": 0.97, \"reasoning\": \"Strong positive language: 'really excited', 'building'.\", \"highlights\": [\"really excited\", \"building AI apps\"]}",
+  "parsed": {
+    "sentiment": "POSITIVE",
+    "score": 0.97,
+    "reasoning": "Strong positive language: 'really excited', 'building'.",
+    "highlights": ["really excited", "building AI apps"]
+  }
+}
+```
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -852,18 +1146,24 @@ src/main/java/com/example/agent/
 ├── config/
 │   └── OpenApiConfig.java              # Swagger / OpenAPI metadata
 ├── controller/
-│   ├── AgentController.java            # /api/agent — AI chat + ping
-│   ├── StreamController.java           # /api/stream — SSE streaming
-│   ├── StructuredOutputController.java # /api/structured — typed JSON output
-│   ├── PromptTemplateController.java   # /api/template — parameterized prompts
-│   ├── MultimodalController.java       # /api/multimodal — vision/image
-│   └── ToolsController.java            # /api/tools — direct utility endpoints
+│   ├── AgentController.java            # /api/agent         — AI chat + ping
+│   ├── StreamController.java           # /api/stream        — SSE streaming
+│   ├── StructuredOutputController.java # /api/structured    — typed JSON output
+│   ├── PromptTemplateController.java   # /api/template      — parameterized prompts
+│   ├── MultimodalController.java       # /api/multimodal    — vision/image
+│   ├── ToolsController.java            # /api/tools         — direct utility endpoints
+│   ├── ModelConfigController.java      # /api/model-config  — AnthropicChatOptions + SimpleLoggerAdvisor + SystemPromptTemplate
+│   ├── ConversationController.java     # /api/conversation  — multi-session memory management
+│   └── OutputConverterController.java  # /api/output        — MapOutputConverter + ListOutputConverter + explicit BeanOutputConverter
 ├── service/
 │   ├── AgentService.java               # ChatClient with tools + memory
 │   ├── StreamService.java              # Streaming Flux<String>
 │   ├── StructuredOutputService.java    # entity() structured output
 │   ├── PromptTemplateService.java      # PromptTemplate + param()
-│   └── MultimodalService.java          # media() vision API
+│   ├── MultimodalService.java          # media() vision API
+│   ├── ModelConfigService.java         # AnthropicChatOptions + SimpleLoggerAdvisor + SystemPromptTemplate
+│   ├── ConversationService.java        # Per-session ChatClient lifecycle management
+│   └── OutputConverterService.java     # MapOutputConverter + ListOutputConverter + BeanOutputConverter
 ├── tools/
 │   └── AgentTools.java                 # 15 @Tool methods
 └── model/
