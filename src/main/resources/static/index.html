@@ -131,8 +131,12 @@ select.inp{cursor:pointer}
   <span class="brand">☕ Java AI Playground</span>
   <div class="tb-mid" id="page-title">Dashboard</div>
   <div class="tb-right">
-    <span id="app-dot" class="dot chk" title="Checking app..."></span>
-    <a href="/swagger-ui/index.html" target="_blank" class="icon-btn" style="text-decoration:none;font-size:12px">Swagger ↗</a>
+    <div style="display:flex;align-items:center;gap:4px" title="Spring Boot base URL">
+      <span id="app-dot" class="dot chk" title="Checking..."></span>
+      <input id="base-url-inp" style="background:var(--s2);border:1px solid var(--bd);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;width:190px;font-family:monospace;outline:none" placeholder="http://localhost:8080" value="http://localhost:8080">
+      <button class="icon-btn" style="font-size:11px;padding:4px 8px" onclick="setBase(document.getElementById('base-url-inp').value)">Connect</button>
+    </div>
+    <a id="swagger-link" href="http://localhost:8080/swagger-ui/index.html" target="_blank" class="icon-btn" style="text-decoration:none;font-size:12px">Swagger ↗</a>
     <button class="icon-btn" id="theme-btn">🌙</button>
   </div>
 </header>
@@ -152,7 +156,19 @@ select.inp{cursor:pointer}
 'use strict';
 
 /* ── CONFIG ── */
-const BASE = '';
+// Use relative URLs when served by Spring Boot; fall back to absolute when opened from file://
+let BASE = (window.location.protocol === 'file:')
+  ? (localStorage.getItem('playground_base') || 'http://localhost:8080')
+  : '';
+
+function setBase(url) {
+  BASE = url.replace(/\/$/, '');
+  localStorage.setItem('playground_base', BASE);
+  const inp = document.getElementById('base-url-inp');
+  if (inp) inp.value = BASE;
+  checkAppHealth();
+  toast('Base URL updated to ' + BASE, 'ok');
+}
 
 /* ── STATE ── */
 const S = {
@@ -223,13 +239,17 @@ function prettyJson(v) {
 
 /* ── API ── */
 async function apiPost(path, body) {
-  const r = await fetch(BASE+path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
-  if(!r.ok) { const t=await r.text(); throw new Error(t||r.statusText); }
+  let r;
+  try { r = await fetch(BASE+path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}); }
+  catch(e) { throw new Error('Cannot reach ' + BASE + path + ' — is the app running? (' + e.message + ')'); }
+  if(!r.ok) { const t=await r.text().catch(()=>''); throw new Error(r.status + ' ' + r.statusText + (t?' — '+t.slice(0,180):'')); }
   return r.json();
 }
 async function apiGet(path) {
-  const r = await fetch(BASE+path);
-  if(!r.ok) throw new Error(r.statusText);
+  let r;
+  try { r = await fetch(BASE+path); }
+  catch(e) { throw new Error('Cannot reach ' + BASE + path + ' — is the app running? (' + e.message + ')'); }
+  if(!r.ok) { const t=await r.text().catch(()=>''); throw new Error(r.status + ' ' + r.statusText + (t?' — '+t.slice(0,120):'')); }
   return r.json();
 }
 async function apiDel(path) {
@@ -239,8 +259,10 @@ async function apiDel(path) {
 }
 async function apiStream(path, body, onToken, onDone, onErr) {
   try {
-    const r = await fetch(BASE+path, {method:'POST', headers:{'Content-Type':'application/json','Accept':'text/event-stream'}, body:JSON.stringify(body)});
-    if(!r.ok){const t=await r.text();return onErr(new Error(t||r.statusText));}
+    let r;
+    try { r = await fetch(BASE+path, {method:'POST', headers:{'Content-Type':'application/json','Accept':'text/event-stream'}, body:JSON.stringify(body)}); }
+    catch(e) { return onErr(new Error('Cannot reach ' + BASE + path + ' (' + e.message + ')')); }
+    if(!r.ok){const t=await r.text().catch(()=>'');return onErr(new Error(r.status+' '+r.statusText+(t?' — '+t.slice(0,120):''))); }
     const reader = r.body.getReader();
     const dec = new TextDecoder();
     let buf = '';
@@ -1414,6 +1436,36 @@ function applyTheme(t) {
   localStorage.setItem('th',t);
 }
 
+/* ── HEALTH CHECK ── */
+function checkAppHealth() {
+  const dot=$('#app-dot');
+  const swLink=$('#swagger-link');
+  dot.className='dot chk'; dot.title='Checking…';
+  if(swLink) swLink.href = BASE + '/swagger-ui/index.html';
+  const inp=$('#base-url-inp'); if(inp) inp.value=BASE;
+  apiGet('/api/agent/ping')
+    .then(()=>{
+      dot.className='dot ok'; dot.title='Connected to '+BASE;
+      // hide connection banner if shown
+      const banner=$('#conn-banner'); if(banner) banner.remove();
+    })
+    .catch(e=>{
+      dot.className='dot err'; dot.title='Cannot connect: '+e.message;
+      // show a helpful banner if not already shown
+      if(!$('#conn-banner')) {
+        const b=document.createElement('div');
+        b.id='conn-banner';
+        b.style.cssText='background:rgba(248,81,73,.12);border-bottom:1px solid rgba(248,81,73,.3);padding:8px 16px;font-size:12px;color:var(--re);display:flex;align-items:center;gap:10px;flex-shrink:0';
+        b.innerHTML='<strong>⚠ Cannot connect to backend</strong> — Make sure Spring Boot is running at <code style="background:rgba(0,0,0,.2);padding:1px 5px;border-radius:3px">'
+          +BASE+'</code>. If you opened this file directly, click <strong>Connect</strong> above to set the correct URL.&nbsp;'
+          +'<button onclick="checkAppHealth()" style="background:var(--re);color:#fff;border:none;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:11px">Retry</button>'
+          +'<button onclick="this.parentElement.remove()" style="background:transparent;border:none;color:var(--re);cursor:pointer;margin-left:auto;font-size:16px">×</button>';
+        // insert after header
+        document.getElementById('app').insertBefore(b, document.getElementById('layout'));
+      }
+    });
+}
+
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded',()=>{
   applyTheme(S.theme);
@@ -1424,10 +1476,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('#sb-toggle').onclick=()=>$('#sidebar').classList.toggle('closed');
   $('#theme-btn').onclick=()=>applyTheme(S.theme==='dark'?'light':'dark');
 
-  // Check app health
-  apiGet('/api/agent/ping')
-    .then(()=>{ $('#app-dot').className='dot ok'; '#app-dot'.title='App is running'; })
-    .catch(()=>{ $('#app-dot').className='dot err'; });
+  // Wire up base URL input — press Enter to connect
+  const inp=$('#base-url-inp');
+  if(inp) {
+    inp.value = BASE;
+    inp.onkeydown = e => { if(e.key==='Enter') setBase(inp.value); };
+  }
+
+  // Initial health check
+  checkAppHealth();
 
   // Keyboard shortcut: / to focus search
   document.addEventListener('keydown',e=>{
