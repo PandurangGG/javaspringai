@@ -658,6 +658,7 @@
     <li><a href="#springai-providers">Spring AI Providers</a></li>
     <li><a href="#langchain4j">LangChain4j</a></li>
     <li><a href="#comparison">Comparison</a></li>
+    <li><a href="#playground">Playground</a></li>
     <li><a href="#stack">Stack</a></li>
   </ul>
   <div class="nav-actions">
@@ -674,7 +675,8 @@
   <h1>Java AI Frameworks<br>Integration Project</h1>
   <p>A living reference for every major Java AI library — two frameworks, nine providers, 73 API endpoints, all in one running application.</p>
   <div class="hero-links">
-    <a class="btn btn-primary" href="http://localhost:8080/swagger-ui/index.html" target="_blank">🔗 Open Swagger UI</a>
+    <a class="btn btn-primary" href="http://localhost:8080/" target="_blank">🎮 Open Playground</a>
+    <a class="btn btn-outline" href="http://localhost:8080/swagger-ui/index.html" target="_blank">🔗 Swagger UI</a>
     <a class="btn btn-outline" href="#overview">📖 View Report</a>
     <a class="btn btn-outline" href="https://github.com/PandurangGG/javaspringai" target="_blank">⑂ Source Code</a>
   </div>
@@ -732,7 +734,7 @@
 <span class="tree-root">com.example</span>
 <span class="tree-branch">│</span>
 <span class="tree-branch">├── </span><span class="tree-pkg">agent/</span>                    <span class="tree-comment">← Spring AI + Anthropic Claude  (PRIMARY — 9 controllers)</span>
-<span class="tree-branch">│   ├── </span><span class="tree-file">config/</span>               <span class="tree-comment">OpenAPI / Swagger configuration</span>
+<span class="tree-branch">│   ├── </span><span class="tree-file">config/</span>               <span class="tree-comment">OpenAPI, Swagger + CorsConfig (allowedOriginPatterns("*"))</span>
 <span class="tree-branch">│   ├── </span><span class="tree-file">model/</span>                <span class="tree-comment">4 typed Java records for structured output</span>
 <span class="tree-branch">│   ├── </span><span class="tree-file">tools/</span>                <span class="tree-comment">15 @Tool functions the AI can call</span>
 <span class="tree-branch">│   ├── </span><span class="tree-file">service/</span>              <span class="tree-comment">7 services (agent, streaming, structured, templates...)</span>
@@ -749,6 +751,9 @@
     <span class="tree-branch">├── </span><span class="tree-provider">ollama/</span>               <span class="tree-comment">Ollama (local)     → /api/langchain4j/ollama/*</span>
     <span class="tree-branch">├── </span><span class="tree-provider">gemini/</span>               <span class="tree-comment">Google Gemini      → /api/langchain4j/gemini/*</span>
     <span class="tree-branch">└── </span><span class="tree-provider">mistral/</span>              <span class="tree-comment">Mistral AI         → /api/langchain4j/mistral/*</span>
+<span class="tree-branch">│</span>
+<span class="tree-branch">└── </span><span class="tree-pkg">resources/static/</span>        <span class="tree-comment">← Spring Boot auto-serves as http://localhost:8080/</span>
+    <span class="tree-branch">└── </span><span class="tree-file">index.html</span>            <span class="tree-comment">Interactive SPA playground — 19 pages, 73 live endpoints</span>
     </div>
 
     <div class="highlight-box info" style="margin-top:20px">
@@ -1246,6 +1251,95 @@
     </div>
   </section>
 
+  <!-- INTERACTIVE PLAYGROUND -->
+  <section id="playground">
+    <div class="section-header">
+      <div class="section-title"><span class="icon">🎮</span> Interactive Playground</div>
+      <p class="section-desc">A full single-page application served automatically at <code>http://localhost:8080/</code> — test every endpoint live from the browser, no Postman or curl needed.</p>
+    </div>
+
+    <div class="highlight-box success" style="margin-bottom:24px">
+      <span class="highlight-icon">🌐</span>
+      <div class="highlight-text">
+        <strong>Start the app</strong> (<code>mvn spring-boot:run</code>) then open <a href="http://localhost:8080/" target="_blank" style="color:var(--green)">http://localhost:8080/</a> — Spring Boot serves <code>src/main/resources/static/index.html</code> automatically, making all API calls same-origin (no CORS issues).
+      </div>
+    </div>
+
+    <div class="card-grid" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(63,185,80,0.1)">🆓</div>
+          <div><div class="card-title">Free APIs — No Key Required</div><div class="card-subtitle">Dedicated sidebar tab</div></div>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:10px">Every endpoint labelled with <span style="background:rgba(63,185,80,.15);color:var(--green);padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700">FREE</span> or <span style="background:rgba(255,166,87,.15);color:var(--orange);padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700">KEY</span> badge. A sidebar filter shows only the no-key endpoints: Ollama + all 15 tool utilities.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(188,140,255,0.1)">🦙</div>
+          <div><div class="card-title">Ollama Setup Guide</div><div class="card-subtitle">Auto-detect + graceful fallback</div></div>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:10px">On every Ollama page load, the playground pings <code>localhost:11434/api/tags</code> and shows a live status badge — <span style="color:var(--green)">✓ connected</span> with model list, or <span style="color:var(--red)">✗ not running</span> with step-by-step install instructions and a download link.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(88,166,255,0.1)">🌊</div>
+          <div><div class="card-title">Live SSE Streaming</div><div class="card-subtitle">Token-by-token via fetch</div></div>
+        </div>
+        <p style="font-size:13px;color:var(--text2)">All 14 streaming endpoints displayed token-by-token in real time. Uses <code>fetch</code> + <code>ReadableStream</code> instead of <code>EventSource</code> — supports POST bodies and works from same-origin and cross-origin (file://).</p>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(255,166,87,0.1)">📑</div>
+          <div><div class="card-title">19 Navigable Pages</div><div class="card-subtitle">Sidebar SPA router</div></div>
+        </div>
+        <p style="font-size:13px;color:var(--text2)">Dashboard · Free APIs · Agent Chat · Stream · Structured Output · Templates · Vision · Tools · Model Config · Memory · Output Converters · 4 Spring AI provider pages · 5 LangChain4j provider pages · Compare.</p>
+      </div>
+    </div>
+
+    <div class="comparison-grid">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(88,166,255,0.1)">🏗️</div>
+          <div><div class="card-title">SPA Technical Details</div></div>
+        </div>
+        <ul class="endpoint-list">
+          <li class="endpoint-item"><span style="color:var(--green);font-size:16px">✓</span><span class="endpoint-desc">Vanilla JS router — <code>navigate(pageId)</code> + <code>PAGES</code> map</span></li>
+          <li class="endpoint-item"><span style="color:var(--green);font-size:16px">✓</span><span class="endpoint-desc"><code>buildProviderPage()</code> factory: one function generates all 9 provider UIs</span></li>
+          <li class="endpoint-item"><span style="color:var(--green);font-size:16px">✓</span><span class="endpoint-desc"><code>data-tabs="prefix"</code> wrapper pattern — tab highlighting works across all groups</span></li>
+          <li class="endpoint-item"><span style="color:var(--green);font-size:16px">✓</span><span class="endpoint-desc">Session-aware chat state in <code>S.chats</code> — persists across page navigations</span></li>
+          <li class="endpoint-item"><span style="color:var(--green);font-size:16px">✓</span><span class="endpoint-desc">Smart BASE URL — detects <code>file://</code> vs <code>http://</code> for both modes</span></li>
+          <li class="endpoint-item"><span style="color:var(--green);font-size:16px">✓</span><span class="endpoint-desc">Health check bar pings all provider ping endpoints on load</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(63,185,80,0.1)">🔧</div>
+          <div><div class="card-title">CorsConfig.java — New</div><div class="card-subtitle">Supports opening index.html from disk</div></div>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">java — src/main/java/…/config/CorsConfig.java</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="an">@Configuration</span>
+<span class="kw">public class</span> <span class="fn">CorsConfig</span> <span class="kw">implements</span> WebMvcConfigurer {
+  <span class="an">@Override</span>
+  <span class="kw">public void</span> <span class="fn">addCorsMappings</span>(CorsRegistry registry) {
+    registry.addMapping(<span class="str">"/api/**"</span>)
+      .allowedOriginPatterns(<span class="str">"*"</span>)  <span class="cm">// allows null (file://)</span>
+      .allowedMethods(<span class="str">"GET"</span>,<span class="str">"POST"</span>,<span class="str">"DELETE"</span>,<span class="str">"OPTIONS"</span>)
+      .allowCredentials(<span class="kw">false</span>);
+  }
+}</code></pre>
+        </div>
+        <div class="highlight-box info" style="margin-top:12px">
+          <span class="highlight-icon">💡</span>
+          <div class="highlight-text">Without <code>allowedOriginPatterns("*")</code>, browsers block requests from <code>file://</code> (null origin). This config enables the playground to work even when opened directly from disk.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- TECH STACK -->
   <section id="stack">
     <div class="section-header">
@@ -1291,12 +1385,20 @@
       <div class="section-title"><span class="icon">🔗</span> Access Points</div>
     </div>
     <div class="card-grid">
+      <div class="card" style="border-color:rgba(63,185,80,0.4)">
+        <div class="card-header">
+          <div class="card-icon" style="background:rgba(63,185,80,0.1)">🎮</div>
+          <div><div class="card-title">Interactive Playground</div><div class="card-subtitle">SPA — 73 endpoints, live chat, streaming</div></div>
+        </div>
+        <div class="mono" style="font-size:13px;margin-bottom:8px"><a href="http://localhost:8080/" target="_blank" style="color:var(--accent)">http://localhost:8080/</a></div>
+        <div style="font-size:12px;color:var(--text2)">Served from <code>static/index.html</code> — no build step. Open in browser and start testing immediately.</div>
+      </div>
       <div class="card">
         <div class="card-header">
-          <div class="card-icon" style="background:rgba(63,185,80,0.1)">📖</div>
-          <div><div class="card-title">Swagger UI</div><div class="card-subtitle">Interactive API explorer — all 73 endpoints</div></div>
+          <div class="card-icon" style="background:rgba(88,166,255,0.1)">📖</div>
+          <div><div class="card-title">Swagger UI</div><div class="card-subtitle">Auto-generated API explorer</div></div>
         </div>
-        <div class="mono" style="font-size:13px">http://localhost:8080/swagger-ui/index.html</div>
+        <div class="mono" style="font-size:13px"><a href="http://localhost:8080/swagger-ui/index.html" target="_blank" style="color:var(--accent)">http://localhost:8080/swagger-ui/index.html</a></div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -1318,8 +1420,12 @@
 </div>
 
 <footer>
-  <p>Java AI Frameworks Reference Project · Built with Spring Boot 3.3.4 · Spring AI 1.0.0 · LangChain4j 0.36.2</p>
-  <p style="margin-top:8px"><a href="https://github.com/PandurangGG/javaspringai" target="_blank">⑂ GitHub</a> · <a href="http://localhost:8080/swagger-ui/index.html" target="_blank">📖 Swagger UI</a></p>
+  <p>Java AI Frameworks Reference Project · Spring Boot 3.3.4 · Spring AI 1.0.0 · LangChain4j 0.36.2</p>
+  <p style="margin-top:8px">
+    <a href="https://github.com/PandurangGG/javaspringai" target="_blank">⑂ GitHub</a> ·
+    <a href="http://localhost:8080/" target="_blank">🎮 Playground</a> ·
+    <a href="http://localhost:8080/swagger-ui/index.html" target="_blank">📖 Swagger UI</a>
+  </p>
 </footer>
 
 <button class="back-to-top" id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
