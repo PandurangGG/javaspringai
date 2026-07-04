@@ -1,0 +1,852 @@
+<title>Spring AI · API Explorer</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --base:#050C14;--panel:#091624;--card:#0C1D2E;--card-hi:#112536;
+  --border:#1B3A52;--border-sub:#0F2538;
+  --accent:#12B8AA;--accent-bg:rgba(18,184,170,.1);--accent-glow:rgba(18,184,170,.25);
+  --warm:#E89B1A;--warm-bg:rgba(232,155,26,.1);
+  --tx:#C4DDEF;--tx2:#6A9AB8;--tx3:#2E5A78;
+  --ok:#22D3A0;--err:#F87171;--warn:#F8C555;
+  --m-get:#34D399;--m-post:#60A5FA;--m-del:#F87171;
+  --r:6px;
+  --mono:ui-monospace,'Cascadia Code','SF Mono',Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+html,body{height:100%;background:var(--base);color:var(--tx);font-family:var(--sans);font-size:14px;line-height:1.6;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100vh}
+
+/* ── HEADER ── */
+header{
+  display:flex;align-items:center;gap:16px;
+  padding:0 20px;height:50px;
+  background:var(--panel);border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.logo{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--accent);letter-spacing:-.3px;white-space:nowrap}
+.logo span{color:var(--tx3);font-weight:400}
+.logo-dot{color:var(--warm)}
+.cors-notice{
+  display:flex;align-items:center;gap:8px;
+  background:var(--warm-bg);border:1px solid rgba(232,155,26,.25);
+  border-radius:var(--r);padding:4px 12px;font-size:11px;color:var(--warm);
+}
+.cors-notice a{color:var(--warm);text-decoration:underline;cursor:pointer}
+.dl-btn{
+  background:none;border:1px solid rgba(18,184,170,.4);border-radius:4px;
+  color:var(--accent);font-size:11px;font-family:var(--mono);padding:3px 10px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;flex-shrink:0;
+}
+.dl-btn:hover{background:var(--accent);color:var(--base)}
+
+/* ── MIXED-CONTENT BANNER ── */
+#mixedBanner{
+  display:none;flex-shrink:0;
+  background:rgba(232,155,26,.08);border-bottom:1px solid rgba(232,155,26,.3);
+  padding:10px 20px;gap:12px;align-items:flex-start;
+}
+#mixedBanner .mb-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+#mixedBanner .mb-body{flex:1;font-size:12px;color:var(--tx2);line-height:1.6}
+#mixedBanner .mb-body strong{color:var(--warn)}
+#mixedBanner .mb-steps{margin-top:6px;padding-left:16px;color:var(--tx3);font-size:11.5px}
+#mixedBanner .mb-steps li{margin-bottom:2px}
+#mixedBanner .mb-steps code{
+  font-family:var(--mono);font-size:11px;
+  background:rgba(255,255,255,.06);border-radius:3px;padding:1px 5px;color:var(--tx2);
+}
+#mixedBanner .mb-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.mb-btn-dl{
+  background:var(--accent);border:none;border-radius:4px;
+  color:var(--base);font-family:var(--mono);font-size:11px;font-weight:700;
+  padding:5px 14px;cursor:pointer;transition:background .15s;
+}
+.mb-btn-dl:hover{background:#0ea89a}
+.mb-btn-dismiss{
+  background:none;border:1px solid var(--border);border-radius:4px;
+  color:var(--tx3);font-size:11px;padding:5px 12px;cursor:pointer;
+}
+.mb-btn-dismiss:hover{color:var(--tx2)}
+.url-bar{
+  display:flex;align-items:center;gap:8px;margin-left:auto;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);padding:3px 6px 3px 12px;
+}
+.url-bar label{font-family:var(--mono);font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+.url-bar input{
+  background:none;border:none;outline:none;
+  color:var(--tx);font-family:var(--mono);font-size:12px;width:148px;
+}
+.url-btn{
+  background:var(--accent-bg);border:1px solid rgba(18,184,170,.4);border-radius:4px;
+  color:var(--accent);font-size:11px;font-family:var(--mono);padding:3px 10px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.url-btn:hover{background:var(--accent);color:var(--base)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+nav#sidebar{
+  width:160px;flex-shrink:0;
+  background:var(--panel);border-right:1px solid var(--border);
+  overflow-y:auto;padding:8px 0 20px;
+}
+.nav-group-label{
+  font-family:var(--mono);font-size:9.5px;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.1em;
+  padding:14px 14px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:7px;
+  padding:7px 10px;cursor:pointer;
+  border-left:2px solid transparent;transition:all .12s;
+}
+.nav-item:hover{background:var(--card);color:var(--tx)}
+.nav-item.active{background:var(--accent-bg);border-left-color:var(--accent);color:var(--accent)}
+.nav-item.active .ni-icon{color:var(--accent)}
+.ni-icon{font-size:13px;color:var(--tx3);width:18px;text-align:center;flex-shrink:0}
+.ni-label{font-size:12.5px;flex:1}
+.ni-count{
+  font-family:var(--mono);font-size:9.5px;color:var(--tx3);
+  background:var(--border-sub);border-radius:3px;padding:0 5px;
+}
+
+/* ── MAIN ── */
+main#content{flex:1;overflow-y:auto;padding:16px 16px 40px;background:var(--base)}
+.sec-header{margin-bottom:18px}
+.sec-title{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--tx);letter-spacing:-.3px}
+.sec-desc{font-size:12.5px;color:var(--tx2);margin-top:3px;line-height:1.5}
+.sec-divider{height:1px;background:var(--border-sub);margin-bottom:16px}
+
+/* ── ENDPOINT CARDS ── */
+.ep-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:10px;overflow:hidden;
+  transition:border-color .15s;
+}
+.ep-card:has(.ep-body.open){border-color:rgba(18,184,170,.3)}
+.ep-head{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 14px;cursor:pointer;transition:background .12s;
+  user-select:none;
+}
+.ep-head:hover{background:var(--card-hi)}
+.method-badge{
+  font-family:var(--mono);font-size:9.5px;font-weight:700;
+  padding:2px 7px;border-radius:3px;letter-spacing:.05em;
+  min-width:46px;text-align:center;flex-shrink:0;
+}
+.m-GET{background:rgba(52,211,153,.1);color:var(--m-get);border:1px solid rgba(52,211,153,.25)}
+.m-POST{background:rgba(96,165,250,.1);color:var(--m-post);border:1px solid rgba(96,165,250,.25)}
+.m-DELETE{background:rgba(248,113,113,.1);color:var(--m-del);border:1px solid rgba(248,113,113,.25)}
+.ep-path{font-family:var(--mono);font-size:11.5px;color:var(--tx);flex:1}
+.ep-name{font-size:11.5px;color:var(--tx2)}
+.ep-chev{color:var(--tx3);font-size:11px;transition:transform .2s;flex-shrink:0;margin-left:4px}
+.ep-head.open .ep-chev{transform:rotate(180deg)}
+.ep-body{border-top:1px solid var(--border-sub);padding:14px 16px;display:none}
+.ep-body.open{display:block}
+.ep-desc{font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.5}
+
+/* ── FORM ── */
+.field{margin-bottom:10px}
+.field-label{
+  font-family:var(--mono);font-size:10px;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;display:block;
+}
+.field-row{display:grid;gap:10px}
+.field-row-2{grid-template-columns:1fr 1fr}
+.field-row-3{grid-template-columns:1fr 1fr 1fr}
+.field-row-4{grid-template-columns:1fr 1fr 1fr 1fr}
+input[type=text],textarea,select{
+  width:100%;background:var(--panel);border:1px solid var(--border);
+  border-radius:var(--r);color:var(--tx);font-family:var(--sans);font-size:12.5px;
+  padding:7px 10px;outline:none;transition:border-color .15s;
+}
+textarea{font-family:var(--mono);font-size:12px;line-height:1.55;resize:vertical;min-height:72px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--card)}
+.ep-actions{display:flex;gap:8px;margin-top:12px;align-items:center}
+.btn-run{
+  background:var(--accent);border:none;border-radius:var(--r);
+  color:var(--base);font-family:var(--mono);font-size:11.5px;font-weight:700;
+  padding:7px 20px;cursor:pointer;transition:all .15s;letter-spacing:.02em;
+}
+.btn-run:hover{background:#0ea89a}
+.btn-run:disabled{opacity:.45;cursor:not-allowed}
+.btn-clear{
+  background:none;border:1px solid var(--border);border-radius:var(--r);
+  color:var(--tx2);font-size:12px;padding:7px 14px;cursor:pointer;transition:border-color .15s;
+}
+.btn-clear:hover{border-color:var(--tx3);color:var(--tx)}
+.run-status{font-family:var(--mono);font-size:11px;color:var(--tx3);margin-left:4px}
+.run-status.ok{color:var(--ok)}
+.run-status.err{color:var(--err)}
+
+/* ── RESPONSE ── */
+.resp-area{margin-top:14px}
+.resp-label{
+  font-family:var(--mono);font-size:9.5px;color:var(--tx3);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.resp-box{
+  background:var(--panel);border:1px solid var(--border-sub);
+  border-radius:var(--r);padding:11px 13px;
+  font-family:var(--mono);font-size:11.5px;line-height:1.75;
+  white-space:pre-wrap;word-break:break-word;
+  min-height:52px;max-height:380px;overflow-y:auto;
+  color:var(--tx2);transition:border-color .15s;
+}
+.resp-box.streaming{border-color:rgba(18,184,170,.3)}
+.resp-box.has-resp{color:var(--tx)}
+.json-k{color:#79B8FF}
+.json-s{color:#9ECBFF}
+.json-n{color:#F8C555}
+.json-b{color:#79DCAA}
+.json-nil{color:var(--tx3)}
+.cursor{display:inline-block;width:6px;height:13px;background:var(--accent);animation:blink .75s infinite;vertical-align:text-bottom;margin-left:1px}
+
+/* ── SPINNER ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.1}}
+.spinner{
+  display:inline-block;width:12px;height:12px;
+  border:2px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;
+  margin-right:6px;vertical-align:middle;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--tx3)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 20px;color:var(--tx3)}
+.empty-icon{font-size:28px;margin-bottom:10px;opacity:.5}
+.empty p{font-size:13px;line-height:1.8}
+
+@media(max-width:400px){nav#sidebar{display:none}}
+</style>
+
+<div id="app">
+  <header>
+    <div class="logo">spring<span class="logo-dot">·</span>ai <span>/ explorer</span></div>
+    <div class="url-bar">
+      <label>Base URL</label>
+      <input type="text" id="baseUrlInput" value="http://localhost:8080" placeholder="http://localhost:8080" />
+      <button class="url-btn" onclick="applyBaseUrl()">Apply</button>
+    </div>
+    <button class="dl-btn" onclick="downloadPage()" title="Download as local HTML file">⬇ Download</button>
+  </header>
+  <div id="mixedBanner">
+    <div class="mb-icon">⚠</div>
+    <div class="mb-body">
+      <strong>Mixed-content blocked</strong> — this page is on HTTPS, so browsers block calls to <code id="mbUrl">http://localhost:8080</code> (HTTP).
+      <ol class="mb-steps">
+        <li><strong>Easiest:</strong> click <em>Download</em> above, then open the saved file locally — <code>file://</code> pages can call HTTP freely.</li>
+        <li><strong>Alternative:</strong> add <code>@CrossOrigin(origins="*")</code> to your Spring controllers <em>and</em> enable HTTPS on the backend, then set Base URL to <code>https://localhost:8443</code>.</li>
+      </ol>
+      <div class="mb-actions">
+        <button class="mb-btn-dl" onclick="downloadPage()">⬇ Download &amp; Run Locally</button>
+        <button class="mb-btn-dismiss" onclick="document.getElementById('mixedBanner').style.display='none'">Dismiss</button>
+      </div>
+    </div>
+  </div>
+  <div class="layout">
+    <nav id="sidebar"></nav>
+    <main id="content"></main>
+  </div>
+</div>
+
+<script>
+const S = { section: 'agent', baseUrl: 'http://localhost:8080' };
+
+/* ── NAV CONFIG ── */
+const NAV = [
+  { id:'agent',        label:'Agent Chat',        icon:'◈', count:2  },
+  { id:'stream',       label:'Streaming',         icon:'◎', count:2  },
+  { id:'structured',   label:'Structured Output', icon:'⬡', count:4  },
+  { id:'template',     label:'Prompt Templates',  icon:'◻', count:5  },
+  { id:'multimodal',   label:'Multimodal / Vision',icon:'◉', count:4 },
+  { id:'tools',        label:'Utility Tools',     icon:'⚙', count:12 },
+  { id:'modelconfig',  label:'Model Config',      icon:'◆', count:5  },
+  { id:'conversation', label:'Conversations',     icon:'◐', count:3  },
+  { id:'output',       label:'Output Converters', icon:'◩', count:3  },
+];
+
+/* ── ENDPOINT DEFINITIONS ── */
+const SECTIONS = {
+  agent:{
+    title:'Agent Chat',
+    desc:'General-purpose AI agent with autonomous tool access — calculator, notes, text utilities, and more.',
+    eps:[
+      {id:'a1',method:'POST',path:'/api/agent/chat',name:'Chat with Agent',
+       desc:'Send a message; the agent decides which tools to call and replies with the result.',
+       fields:[{id:'message',label:'Message',type:'ta',ph:'e.g. What is 42 × 17? Save the result as a note called "calc"'}],
+       body:v=>({message:v.message}), rkey:'response'},
+      {id:'a2',method:'GET',path:'/api/agent/ping',name:'Health Check',
+       desc:'Verify the agent service is up and responding.',
+       fields:[],body:null},
+    ]
+  },
+  stream:{
+    title:'Streaming Chat',
+    desc:'Server-Sent Events (SSE) — tokens stream in real-time as the model generates them.',
+    eps:[
+      {id:'s1',method:'POST',path:'/api/stream/chat',name:'Stream Chat',stream:true,
+       desc:'Stream a simple chat message token by token.',
+       fields:[{id:'message',label:'Message',type:'ta',ph:'Tell me a short story about a robot who dreams of gardens…'}],
+       body:v=>({message:v.message})},
+      {id:'s2',method:'POST',path:'/api/stream/chat/custom',name:'Custom System Prompt',stream:true,
+       desc:'Stream with a custom system prompt to control the model\'s persona.',
+       fields:[
+         {id:'system',label:'System Prompt',type:'ta',ph:'You are a Shakespearean bard who answers every question in iambic pentameter.'},
+         {id:'message',label:'User Message',type:'ta',ph:'What is the capital of France?'},
+       ],body:v=>({system:v.system,message:v.message})},
+    ]
+  },
+  structured:{
+    title:'Structured Output',
+    desc:'Type-safe, schema-validated JSON responses — sentiment scores, entities, summaries, and code reviews.',
+    eps:[
+      {id:'st1',method:'POST',path:'/api/structured/sentiment',name:'Sentiment Analysis',
+       desc:'Returns sentiment label (POSITIVE/NEGATIVE/NEUTRAL/MIXED), confidence score, reasoning, and highlight phrases.',
+       fields:[{id:'text',label:'Text',type:'ta',ph:'The new onboarding experience was absolutely seamless — I was up and running in under five minutes!'}],
+       body:v=>({text:v.text})},
+      {id:'st2',method:'POST',path:'/api/structured/extract-entities',name:'Entity Extraction',
+       desc:'Extracts people, places, organizations, dates, and keywords from unstructured text.',
+       fields:[{id:'text',label:'Text',type:'ta',ph:'Tim Cook unveiled the new MacBook Pro at Apple\'s Cupertino campus on Monday, citing record Q3 revenue.'}],
+       body:v=>({text:v.text})},
+      {id:'st3',method:'POST',path:'/api/structured/summarize',name:'Summarize Text',
+       desc:'Generates a title, brief summary, key bullet points, sentiment, and estimated reading time.',
+       fields:[{id:'text',label:'Text to Summarize',type:'ta',ph:'Paste a long article, blog post, or document here…'}],
+       body:v=>({text:v.text})},
+      {id:'st4',method:'POST',path:'/api/structured/code-review',name:'Code Review',
+       desc:'Returns an overall assessment, quality score (0–100), issues list, suggestions, and improved code.',
+       fields:[
+         {id:'language',label:'Language',type:'tx',ph:'Java'},
+         {id:'code',label:'Code Snippet',type:'ta',ph:'public List<String> process(List<String> items) {\n  List<String> result = new ArrayList<>();\n  for(int i=0;i<items.size();i++) result.add(items.get(i).toUpperCase());\n  return result;\n}'},
+       ],body:v=>({language:v.language,code:v.code})},
+    ]
+  },
+  template:{
+    title:'Prompt Templates',
+    desc:'Pre-built prompt templates with variable substitution — translate, draft emails, explain concepts, generate tests.',
+    eps:[
+      {id:'t1',method:'POST',path:'/api/template/render',name:'Render Template',
+       desc:'Render a custom template string with named variables.',
+       fields:[
+         {id:'template',label:'Template  (use {variable} syntax)',type:'ta',ph:'Write a {tone} email to {recipient} about {topic}.'},
+         {id:'variables',label:'Variables (JSON object)',type:'ta',ph:'{"tone":"formal","recipient":"the client","topic":"project delay"}'},
+       ],body:v=>{let vars={};try{vars=JSON.parse(v.variables||'{}')}catch{}return{template:v.template,variables:vars}},rkey:'result'},
+      {id:'t2',method:'POST',path:'/api/template/translate',name:'Translate',
+       desc:'Translate text to a target language and tone.',
+       fields:[
+         {id:'text',label:'Source Text',type:'ta',ph:'Hello, how are you doing today?'},
+         {id:'language',label:'Target Language',type:'tx',ph:'Spanish'},
+         {id:'tone',label:'Tone',type:'tx',ph:'formal'},
+       ],body:v=>({text:v.text,language:v.language,tone:v.tone}),rkey:'translation'},
+      {id:'t3',method:'POST',path:'/api/template/email',name:'Draft Email',
+       desc:'Write a polished professional email from a role, purpose, and bullet-point key points.',
+       fields:[
+         {id:'purpose',label:'Purpose',type:'tx',ph:'Project status update'},
+         {id:'recipientRole',label:'Recipient Role',type:'tx',ph:'Senior Manager'},
+         {id:'senderName',label:'Sender Name',type:'tx',ph:'Alex Johnson'},
+         {id:'keyPoints',label:'Key Points',type:'ta',ph:'- Milestone 1 completed on time\n- Milestone 2 delayed by 2 weeks due to API changes\n- New timeline: June 30'},
+       ],body:v=>({purpose:v.purpose,recipientRole:v.recipientRole,senderName:v.senderName,keyPoints:v.keyPoints}),rkey:'email'},
+      {id:'t4',method:'POST',path:'/api/template/explain',name:'Explain Concept',
+       desc:'Explain any concept tailored to a specific audience level and domain.',
+       fields:[
+         {id:'concept',label:'Concept',type:'tx',ph:'Recursion'},
+         {id:'audienceLevel',label:'Audience Level',type:'tx',ph:'beginner'},
+         {id:'domain',label:'Domain',type:'tx',ph:'computer science'},
+       ],body:v=>({concept:v.concept,audienceLevel:v.audienceLevel,domain:v.domain}),rkey:'explanation'},
+      {id:'t5',method:'POST',path:'/api/template/generate-tests',name:'Generate Unit Tests',
+       desc:'Generate unit tests for a code snippet in any language and test framework.',
+       fields:[
+         {id:'language',label:'Language',type:'tx',ph:'Java'},
+         {id:'testFramework',label:'Test Framework',type:'tx',ph:'JUnit 5 + Mockito'},
+         {id:'code',label:'Code to Test',type:'ta',ph:'public int fibonacci(int n) {\n  if(n<=1) return n;\n  return fibonacci(n-1)+fibonacci(n-2);\n}'},
+       ],body:v=>({language:v.language,testFramework:v.testFramework,code:v.code}),rkey:'tests'},
+    ]
+  },
+  multimodal:{
+    title:'Multimodal / Vision',
+    desc:'Analyze images using Claude\'s vision — describe, question, OCR, or compare two images.',
+    eps:[
+      {id:'mm1',method:'POST',path:'/api/multimodal/analyze',name:'Analyze Image',
+       desc:'Ask a specific question about any publicly accessible image.',
+       fields:[
+         {id:'imageUrl',label:'Image URL',type:'tx',ph:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/240px-PNG_transparency_demonstration_1.png'},
+         {id:'question',label:'Question',type:'ta',ph:'What objects are in this image and what colors are dominant?'},
+       ],body:v=>({imageUrl:v.imageUrl,question:v.question}),rkey:'analysis'},
+      {id:'mm2',method:'POST',path:'/api/multimodal/describe',name:'Describe Image',
+       desc:'Get a detailed narrative description of an image.',
+       fields:[{id:'imageUrl',label:'Image URL',type:'tx',ph:'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800'}],
+       body:v=>({imageUrl:v.imageUrl}),rkey:'description'},
+      {id:'mm3',method:'POST',path:'/api/multimodal/extract-text',name:'Extract Text (OCR)',
+       desc:'Extract all visible text from a screenshot, sign, document, or slide image.',
+       fields:[{id:'imageUrl',label:'Image URL',type:'tx',ph:'https://example.com/screenshot.png'}],
+       body:v=>({imageUrl:v.imageUrl}),rkey:'extractedText'},
+      {id:'mm4',method:'POST',path:'/api/multimodal/compare',name:'Compare Two Images',
+       desc:'Compare two images on any specific aspect — style, content, composition, differences.',
+       fields:[
+         {id:'imageUrl1',label:'Image URL 1',type:'tx',ph:'https://example.com/before.jpg'},
+         {id:'imageUrl2',label:'Image URL 2',type:'tx',ph:'https://example.com/after.jpg'},
+         {id:'aspect',label:'Comparison Aspect',type:'tx',ph:'visual style, color palette, and composition'},
+       ],body:v=>({imageUrl1:v.imageUrl1,imageUrl2:v.imageUrl2,aspect:v.aspect}),rkey:'comparison'},
+    ]
+  },
+  tools:{
+    title:'Utility Tools',
+    desc:'AI-accessible tools exposed directly as REST endpoints — calculator, notes, UUID, Base64, unit conversion, and more.',
+    eps:[
+      {id:'u1',method:'GET',path:'/api/tools/datetime',name:'Current Date & Time',
+       desc:'Get the server\'s current date and time.',
+       fields:[],body:null},
+      {id:'u2',method:'POST',path:'/api/tools/calculate',name:'Calculator',
+       desc:'Perform an arithmetic operation on two numbers.',
+       fields:[
+         {id:'a',label:'Operand A',type:'tx',ph:'42'},
+         {id:'operator',label:'Operator',type:'sel',opts:['+','-','*','/']},
+         {id:'b',label:'Operand B',type:'tx',ph:'17'},
+       ],body:v=>({a:v.a,operator:v.operator,b:v.b})},
+      {id:'u3',method:'GET',path:'/api/tools/notes',name:'List All Notes',
+       desc:'Retrieve all saved key-value notes.',
+       fields:[],body:null},
+      {id:'u4',method:'POST',path:'/api/tools/notes',name:'Save Note',
+       desc:'Save a note under a named key.',
+       fields:[
+         {id:'key',label:'Key',type:'tx',ph:'my-note'},
+         {id:'content',label:'Content',type:'ta',ph:'Note content here…'},
+       ],body:v=>({key:v.key,content:v.content})},
+      {id:'u5',method:'GET',path:'/api/tools/notes/{key}',name:'Get Note by Key',
+       desc:'Retrieve a single note by key.',
+       fields:[{id:'key',label:'Key',type:'tx',ph:'my-note'}],
+       buildUrl:(v,b)=>`${b}/api/tools/notes/${encodeURIComponent(v.key)}`,body:null},
+      {id:'u6',method:'DELETE',path:'/api/tools/notes/{key}',name:'Delete Note',
+       desc:'Delete a note by its key.',
+       fields:[{id:'key',label:'Key',type:'tx',ph:'my-note'}],
+       buildUrl:(v,b)=>`${b}/api/tools/notes/${encodeURIComponent(v.key)}`,body:null},
+      {id:'u7',method:'GET',path:'/api/tools/uuid',name:'Generate UUID',
+       desc:'Generate a new random UUID.',fields:[],body:null},
+      {id:'u8',method:'GET',path:'/api/tools/random',name:'Random Number',
+       desc:'Generate a random integer within a range.',
+       fields:[
+         {id:'min',label:'Min',type:'tx',ph:'1'},
+         {id:'max',label:'Max',type:'tx',ph:'100'},
+       ],buildQuery:v=>`?min=${v.min||1}&max=${v.max||100}`,body:null},
+      {id:'u9',method:'POST',path:'/api/tools/text/transform',name:'Text Transform',
+       desc:'Transform text to upper or lower case.',
+       fields:[
+         {id:'text',label:'Text',type:'ta',ph:'Hello World'},
+         {id:'transformation',label:'Transformation',type:'sel',opts:['upper','lower']},
+       ],body:v=>({text:v.text,transformation:v.transformation})},
+      {id:'u10',method:'POST',path:'/api/tools/text/word-count',name:'Word Count',
+       desc:'Count the number of words in text.',
+       fields:[{id:'text',label:'Text',type:'ta',ph:'The quick brown fox jumps over the lazy dog'}],
+       body:v=>({text:v.text})},
+      {id:'u11',method:'POST',path:'/api/tools/base64/encode',name:'Base64 Encode',
+       desc:'Encode a string to Base64.',
+       fields:[{id:'text',label:'Text',type:'ta',ph:'Hello, World!'}],
+       body:v=>({text:v.text})},
+      {id:'u12',method:'POST',path:'/api/tools/base64/decode',name:'Base64 Decode',
+       desc:'Decode a Base64-encoded string.',
+       fields:[{id:'encoded',label:'Base64 String',type:'ta',ph:'SGVsbG8sIFdvcmxkIQ=='}],
+       body:v=>({encoded:v.encoded})},
+      {id:'u13',method:'POST',path:'/api/tools/temperature/convert',name:'Temperature Converter',
+       desc:'Convert a temperature value between Celsius, Fahrenheit, and Kelvin.',
+       fields:[
+         {id:'value',label:'Value',type:'tx',ph:'100'},
+         {id:'from',label:'From',type:'sel',opts:['C','F','K']},
+         {id:'to',label:'To',type:'sel',opts:['F','C','K']},
+       ],body:v=>({value:v.value,from:v.from,to:v.to})},
+      {id:'u14',method:'GET',path:'/api/tools/system-info',name:'System Info',
+       desc:'Get server OS and JVM information.',fields:[],body:null},
+    ]
+  },
+  modelconfig:{
+    title:'Model Configuration',
+    desc:'Chat with fine-grained control over model, temperature, max tokens, and AI persona.',
+    eps:[
+      {id:'mc1',method:'POST',path:'/api/model-config/chat',name:'Custom Parameters',
+       desc:'Full control: specify model ID, temperature (0–1), and max token budget.',
+       fields:[
+         {id:'message',label:'Message',type:'ta',ph:'Write a one-paragraph pitch for a startup that uses AI to optimize supply chains.'},
+         {id:'temperature',label:'Temperature',type:'tx',ph:'0.7'},
+         {id:'maxTokens',label:'Max Tokens',type:'tx',ph:'500'},
+         {id:'model',label:'Model ID',type:'tx',ph:'claude-3-5-haiku-20241022'},
+       ],body:v=>({message:v.message,temperature:parseFloat(v.temperature)||0.7,maxTokens:parseInt(v.maxTokens)||500,model:v.model}),rkey:'response'},
+      {id:'mc2',method:'POST',path:'/api/model-config/creative',name:'Creative Mode',
+       desc:'High temperature preset — maximally imaginative and varied responses.',
+       fields:[{id:'message',label:'Message',type:'ta',ph:'Invent a brand-new musical instrument and describe how it works.'}],
+       body:v=>({message:v.message}),rkey:'response'},
+      {id:'mc3',method:'POST',path:'/api/model-config/precise',name:'Precise Mode',
+       desc:'Low temperature preset — factual, deterministic, and consistent.',
+       fields:[{id:'message',label:'Message',type:'ta',ph:'What is the time complexity of quicksort in the average case?'}],
+       body:v=>({message:v.message}),rkey:'response'},
+      {id:'mc4',method:'POST',path:'/api/model-config/fast',name:'Fast Mode',
+       desc:'Uses a lighter, faster model for low-latency responses.',
+       fields:[{id:'message',label:'Message',type:'ta',ph:'Summarize the REST architectural style in one sentence.'}],
+       body:v=>({message:v.message}),rkey:'response'},
+      {id:'mc5',method:'POST',path:'/api/model-config/with-persona',name:'With Persona',
+       desc:'Assign a role, preferred language, and communication style to the AI.',
+       fields:[
+         {id:'message',label:'Message',type:'ta',ph:'Explain microservices to me.'},
+         {id:'role',label:'Role',type:'tx',ph:'Senior Software Architect'},
+         {id:'language',label:'Language',type:'tx',ph:'English'},
+         {id:'style',label:'Style',type:'tx',ph:'concise and technical'},
+       ],body:v=>({message:v.message,role:v.role,language:v.language,style:v.style}),rkey:'response'},
+    ]
+  },
+  conversation:{
+    title:'Conversations',
+    desc:'Persistent multi-turn conversations — the model remembers prior turns within a named session.',
+    eps:[
+      {id:'cv1',method:'POST',path:'/api/conversation/{sessionId}/chat',name:'Chat in Session',
+       desc:'Send a message within a named session. The model maintains conversation history.',
+       fields:[
+         {id:'sessionId',label:'Session ID',type:'tx',ph:'my-session-1'},
+         {id:'message',label:'Message',type:'ta',ph:'My name is Alice. Remember that.'},
+       ],buildUrl:(v,b)=>`${b}/api/conversation/${encodeURIComponent(v.sessionId)}/chat`,
+       body:v=>({message:v.message}),rkey:'response'},
+      {id:'cv2',method:'GET',path:'/api/conversation/sessions',name:'List Sessions',
+       desc:'Get all active conversation session IDs and the session count.',
+       fields:[],body:null},
+      {id:'cv3',method:'DELETE',path:'/api/conversation/{sessionId}',name:'Clear Session',
+       desc:'Delete conversation history for a session.',
+       fields:[{id:'sessionId',label:'Session ID',type:'tx',ph:'my-session-1'}],
+       buildUrl:(v,b)=>`${b}/api/conversation/${encodeURIComponent(v.sessionId)}`,
+       body:null},
+    ]
+  },
+  output:{
+    title:'Output Converters',
+    desc:'Parse AI responses directly into structured Maps, Lists, or typed Java Beans.',
+    eps:[
+      {id:'oc1',method:'POST',path:'/api/output/map',name:'Map Output',
+       desc:'Prompt returns a key-value map — great for factual lookups.',
+       fields:[{id:'prompt',label:'Prompt',type:'ta',ph:'List the G7 countries and their capital cities.'}],
+       body:v=>({prompt:v.prompt})},
+      {id:'oc2',method:'POST',path:'/api/output/list',name:'List Output',
+       desc:'Prompt returns a structured ordered array.',
+       fields:[{id:'prompt',label:'Prompt',type:'ta',ph:'List the top 5 most popular JVM languages in 2024.'}],
+       body:v=>({prompt:v.prompt})},
+      {id:'oc3',method:'POST',path:'/api/output/bean',name:'Bean Output',
+       desc:'Extract structured data from natural language and parse it into a typed object.',
+       fields:[{id:'text',label:'Text',type:'ta',ph:'Extract info from: Jane Doe is a 28-year-old data engineer at Databricks based in San Francisco.'}],
+       body:v=>({text:v.text})},
+    ]
+  },
+};
+
+/* ── HELPERS ── */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function highlightJson(str){
+  return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,(m)=>{
+    if(/^"/.test(m)){
+      if(/:$/.test(m))return`<span class="json-k">${esc(m)}</span>`;
+      return`<span class="json-s">${esc(m)}</span>`;
+    }
+    if(/true|false/.test(m))return`<span class="json-b">${m}</span>`;
+    if(/null/.test(m))return`<span class="json-nil">${m}</span>`;
+    return`<span class="json-n">${m}</span>`;
+  });
+}
+
+function formatResponse(data){
+  if(typeof data==='string') return esc(data);
+  try{ return highlightJson(JSON.stringify(data,null,2)); }
+  catch{ return esc(String(data)); }
+}
+
+function getVals(epId){
+  const vals={};
+  document.querySelectorAll(`[data-ep="${epId}"] [data-fid]`).forEach(el=>{vals[el.dataset.fid]=el.value;});
+  return vals;
+}
+
+function setStatus(btn,statusEl,type,msg){
+  btn.disabled=false;
+  btn.textContent='Run';
+  statusEl.className='run-status '+type;
+  statusEl.textContent=msg;
+}
+
+/* ── API CALLS ── */
+async function callEp(ep, btnEl, statusEl, respEl){
+  const vals=getVals(ep.id);
+  const baseUrl=S.baseUrl.replace(/\/$/,'');
+  let url=ep.buildUrl ? ep.buildUrl(vals,baseUrl) : baseUrl+ep.path;
+  if(ep.buildQuery) url+=ep.buildQuery(vals);
+
+  const opts={method:ep.method,headers:{}};
+  if(ep.body){
+    opts.headers['Content-Type']='application/json';
+    opts.body=JSON.stringify(ep.body(vals));
+  }
+
+  btnEl.disabled=true;
+  btnEl.innerHTML='<span class="spinner"></span>Running…';
+  statusEl.textContent='';
+  respEl.textContent='';
+  respEl.className='resp-box';
+
+  try{
+    const r=await fetch(url,opts);
+    let data;
+    const ct=r.headers.get('content-type')||'';
+    if(ct.includes('application/json')) data=await r.json();
+    else data=await r.text();
+
+    if(!r.ok){
+      setStatus(btnEl,statusEl,'err',`${r.status} ${r.statusText}`);
+      respEl.innerHTML=formatResponse(data);
+      respEl.classList.add('has-resp');
+      return;
+    }
+
+    // extract preferred key if defined
+    let display=data;
+    if(ep.rkey && typeof data==='object' && data!==null && ep.rkey in data) display=data[ep.rkey];
+
+    setStatus(btnEl,statusEl,'ok',`200 OK`);
+    respEl.innerHTML=formatResponse(display);
+    respEl.classList.add('has-resp');
+    document.getElementById('corsNotice').style.display='none';
+
+  }catch(e){
+    const isMixed=location.protocol==='https:'&&url.startsWith('http:');
+    const isNet=e.message.includes('Failed to fetch')||e.message.includes('NetworkError')||e.message.includes('Load failed');
+    if(isMixed||isNet) document.getElementById('mixedBanner').style.display='flex';
+    setStatus(btnEl,statusEl,'err',isMixed?'Mixed-content blocked':'Network Error');
+    const hint=isMixed
+      ?`Mixed-content blocked.\nThe page is on HTTPS but your backend is HTTP.\n\n→ Download this page (⬇ button above) and open it locally as file://`
+      :`Could not reach ${baseUrl}\n\n• Is the Spring Boot app running?\n• Is the port correct?\n• Add @CrossOrigin(origins="*") to your controllers`;
+    respEl.innerHTML=`<span style="color:var(--err)">${esc(hint)}</span>`;
+    respEl.classList.add('has-resp');
+  }
+}
+
+async function streamEp(ep, btnEl, statusEl, respEl){
+  const vals=getVals(ep.id);
+  const baseUrl=S.baseUrl.replace(/\/$/,'');
+  const url=baseUrl+ep.path;
+
+  btnEl.disabled=true;
+  btnEl.innerHTML='<span class="spinner"></span>Streaming…';
+  statusEl.textContent='';
+  respEl.textContent='';
+  respEl.className='resp-box streaming';
+
+  let cursor=document.createElement('span');
+  cursor.className='cursor';
+
+  try{
+    const r=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(ep.body(vals))
+    });
+
+    if(!r.ok){
+      const err=await r.text();
+      setStatus(btnEl,statusEl,'err',`${r.status} ${r.statusText}`);
+      respEl.textContent=err;
+      respEl.classList.add('has-resp');
+      return;
+    }
+
+    respEl.innerHTML='';
+    respEl.appendChild(cursor);
+    let accumulated='';
+
+    const reader=r.body.getReader();
+    const dec=new TextDecoder();
+
+    while(true){
+      const {done,value}=await reader.read();
+      if(done) break;
+      const chunk=dec.decode(value,{stream:true});
+      // SSE: split on newlines, extract data:
+      const lines=chunk.split('\n');
+      for(const line of lines){
+        if(line.startsWith('data:')){
+          const token=line.slice(5);
+          if(token.trim()==='[DONE]') continue;
+          accumulated+=token;
+        } else {
+          // raw text streaming (non-SSE)
+          accumulated+=chunk;
+          break;
+        }
+      }
+      // Update display
+      respEl.textContent=accumulated;
+      respEl.appendChild(cursor);
+      respEl.scrollTop=respEl.scrollHeight;
+    }
+
+    cursor.remove();
+    setStatus(btnEl,statusEl,'ok','Stream complete');
+    respEl.classList.add('has-resp');
+
+  }catch(e){
+    cursor.remove();
+    const isMixed=location.protocol==='https:'&&url.startsWith('http:');
+    if(isMixed) document.getElementById('mixedBanner').style.display='flex';
+    setStatus(btnEl,statusEl,'err',isMixed?'Mixed-content blocked':'Network Error');
+    const hint=isMixed
+      ?`Mixed-content blocked.\n→ Download this page (⬇ button above) and open it locally as file://`
+      :`Could not reach the backend.\n\n• Is Spring Boot running?\n• Check the Base URL in the header`;
+    respEl.innerHTML=`<span style="color:var(--err)">${esc(hint)}</span>`;
+    respEl.classList.add('has-resp');
+  }
+}
+
+/* ── RENDER SIDEBAR ── */
+function renderSidebar(){
+  const nav=document.getElementById('sidebar');
+  let h='<div class="nav-group-label">API Sections</div>';
+  NAV.forEach(n=>{
+    h+=`<div class="nav-item${S.section===n.id?' active':''}" onclick="switchSection('${n.id}')">
+      <span class="ni-icon">${n.icon}</span>
+      <span class="ni-label">${n.label}</span>
+      <span class="ni-count">${n.count}</span>
+    </div>`;
+  });
+  nav.innerHTML=h;
+}
+
+/* ── RENDER FIELDS ── */
+function renderField(f,epId){
+  const id=`f_${epId}_${f.id}`;
+  const attr=`data-ep="${epId}" data-fid="${f.id}" id="${id}"`;
+  if(f.type==='ta'){
+    return`<div class="field"><label class="field-label" for="${id}">${esc(f.label)}</label>
+      <textarea ${attr} placeholder="${esc(f.ph||'')}" rows="3"></textarea></div>`;
+  }
+  if(f.type==='sel'){
+    const opts=(f.opts||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');
+    return`<div class="field"><label class="field-label" for="${id}">${esc(f.label)}</label>
+      <select ${attr}>${opts}</select></div>`;
+  }
+  return`<div class="field"><label class="field-label" for="${id}">${esc(f.label)}</label>
+    <input type="text" ${attr} placeholder="${esc(f.ph||'')}" /></div>`;
+}
+
+/* ── RENDER ENDPOINT CARD ── */
+function renderEpCard(ep){
+  const mclass=`m-${ep.method}`;
+  const fields=ep.fields.map(f=>renderField(f,ep.id)).join('');
+  return`
+  <div class="ep-card">
+    <div class="ep-head" onclick="toggleEp('${ep.id}',this)">
+      <span class="method-badge ${mclass}">${ep.method}</span>
+      <span class="ep-path">${esc(ep.path)}</span>
+      <span class="ep-name">${esc(ep.name)}</span>
+      <span class="ep-chev">▾</span>
+    </div>
+    <div class="ep-body" id="body_${ep.id}">
+      <div class="ep-desc">${esc(ep.desc)}</div>
+      ${fields}
+      <div class="ep-actions">
+        <button class="btn-run" id="btn_${ep.id}" onclick="runEp('${ep.id}')">Run</button>
+        <button class="btn-clear" onclick="clearEp('${ep.id}')">Clear</button>
+        <span class="run-status" id="stat_${ep.id}"></span>
+      </div>
+      <div class="resp-area">
+        <div class="resp-label">
+          <span>Response</span>
+        </div>
+        <div class="resp-box" id="resp_${ep.id}"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── RENDER MAIN CONTENT ── */
+function renderContent(){
+  const sec=SECTIONS[S.section];
+  if(!sec){document.getElementById('content').innerHTML='<div class="empty"><div class="empty-icon">◌</div><p>Select a section from the sidebar.</p></div>';return;}
+  const cards=sec.eps.map(ep=>renderEpCard(ep)).join('');
+  document.getElementById('content').innerHTML=`
+    <div class="sec-header">
+      <div class="sec-title">${esc(sec.title)}</div>
+      <div class="sec-desc">${esc(sec.desc)}</div>
+    </div>
+    <div class="sec-divider"></div>
+    ${cards}`;
+}
+
+/* ── ACTIONS ── */
+function switchSection(id){
+  S.section=id;
+  renderSidebar();
+  renderContent();
+}
+
+function toggleEp(id,headEl){
+  const body=document.getElementById('body_'+id);
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  headEl.classList.toggle('open',!isOpen);
+}
+
+function runEp(id){
+  const sec=SECTIONS[S.section];
+  const ep=sec?.eps.find(e=>e.id===id);
+  if(!ep) return;
+  const btn=document.getElementById('btn_'+id);
+  const stat=document.getElementById('stat_'+id);
+  const resp=document.getElementById('resp_'+id);
+  if(ep.stream) streamEp(ep,btn,stat,resp);
+  else callEp(ep,btn,stat,resp);
+}
+
+function clearEp(id){
+  const resp=document.getElementById('resp_'+id);
+  const stat=document.getElementById('stat_'+id);
+  if(resp){resp.textContent='';resp.className='resp-box';}
+  if(stat){stat.textContent='';stat.className='run-status';}
+}
+
+function applyBaseUrl(){
+  S.baseUrl=document.getElementById('baseUrlInput').value.trim()||'http://localhost:8080';
+  document.getElementById('mbUrl').textContent=S.baseUrl;
+  // Re-show banner if still on HTTPS pointing to HTTP backend
+  const isHttps=location.protocol==='https:';
+  const targetHttp=S.baseUrl.startsWith('http:');
+  if(isHttps&&targetHttp) document.getElementById('mixedBanner').style.display='flex';
+}
+
+function downloadPage(){
+  const src=document.documentElement.outerHTML;
+  const blob=new Blob(['<!DOCTYPE html>\n'+src],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='spring-ai-explorer.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+/* ── INIT ── */
+renderSidebar();
+renderContent();
+
+// Auto-show the mixed-content banner when served over HTTPS with an HTTP backend URL
+(function(){
+  const isHttps=location.protocol==='https:';
+  const targetHttp=S.baseUrl.startsWith('http:');
+  if(isHttps&&targetHttp){
+    document.getElementById('mixedBanner').style.display='flex';
+    document.getElementById('mbUrl').textContent=S.baseUrl;
+  }
+})();
+</script>
