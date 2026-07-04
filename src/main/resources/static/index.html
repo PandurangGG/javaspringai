@@ -334,12 +334,65 @@ function tabBar(tabs, active, prefix) {
 }
 
 function switchTab(prefix, idx) {
-  $$(`[data-tabs="${prefix}"] .tab`).forEach((t,i)=>t.classList.toggle('on',i===idx));
-  $$(`[data-panel="${prefix}"]`).forEach((p,i)=>p.classList.toggle('on',i===idx));
+  let btns = $$(`[data-tabs="${prefix}"] .tab`);
+  if (!btns.length) btns = $$('.tab').filter(t => (t.getAttribute('onclick')||'').includes(`('${prefix}',`));
+  btns.forEach((t,i) => t.classList.toggle('on', i===idx));
+  $$(`[data-panel="${prefix}"]`).forEach((p,i) => p.classList.toggle('on', i===idx));
 }
 
 function setupTabs(el) {
   // tabs already set up via onclick; just ensure first panel visible
+}
+
+function ollamaSetupBanner(uid) {
+  return `<div style="background:rgba(188,140,255,.08);border:1px solid rgba(188,140,255,.3);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-weight:700;color:var(--pu)">🦙 Requires Ollama (local)</span>
+      <span id="oll-st-${uid}" class="badge b-yellow">unknown</span>
+      <button class="btn btn-secondary btn-sm" onclick="checkOllama('${uid}')">Check Status</button>
+      <span style="font-size:12px;color:var(--t2);margin-left:auto">No API key · Free · Private</span>
+    </div>
+    <div id="oll-msg-${uid}" style="font-size:12px;margin-top:8px;display:none"></div>
+    <details style="margin-top:10px">
+      <summary style="font-size:12px;cursor:pointer;color:var(--ac);user-select:none">▸ Setup instructions</summary>
+      <div style="background:var(--bg);border-radius:7px;padding:12px;margin-top:8px;font-family:monospace;font-size:11px;line-height:1.9;color:var(--tx)">
+        <span style="color:var(--t2)"># 1. Download Ollama</span><br>
+        &nbsp;&nbsp;<a href="https://ollama.ai/download" target="_blank" style="color:var(--ac)">https://ollama.ai/download</a><br>
+        <span style="color:var(--t2)"># 2. Pull the model (~2 GB)</span><br>
+        &nbsp;&nbsp;ollama pull llama3.2<br>
+        <span style="color:var(--t2)"># 3. Verify it is running</span><br>
+        &nbsp;&nbsp;ollama list<br>
+        <span style="color:var(--t2)"># 4. Reload page and click Check Status above</span>
+      </div>
+    </details>
+  </div>`;
+}
+
+async function checkOllama(uid) {
+  const st = $(`#oll-st-${uid}`), msg = $(`#oll-msg-${uid}`);
+  if (!st) return;
+  st.className = 'badge b-yellow'; st.textContent = 'checking…';
+  if (msg) msg.style.display = 'none';
+  try {
+    const r = await fetch('http://localhost:11434/api/tags');
+    if (!r.ok) throw new Error(r.statusText);
+    const data = await r.json();
+    const models = (data.models || []).map(m => m.name);
+    const hasLlama = models.some(m => m.includes('llama3.2'));
+    st.className = 'badge b-green'; st.textContent = '✓ connected';
+    if (msg) {
+      msg.style.display = 'block';
+      msg.innerHTML = models.length
+        ? `<span style="color:var(--gr)">✓ Ollama running.</span> Models: <code class="code">${models.join(', ')}</code>${!hasLlama ? ' &nbsp;<span style="color:var(--or)">⚠ llama3.2 not found — run: <code>ollama pull llama3.2</code></span>' : ''}`
+        : '<span style="color:var(--or)">⚠ Ollama running but no models. Run: <code class="code">ollama pull llama3.2</code></span>';
+    }
+  } catch(e) {
+    st.className = 'badge b-red'; st.textContent = '✗ not running';
+    if (msg) {
+      msg.style.display = 'block';
+      msg.innerHTML = '<span style="color:var(--re)">Ollama is not running.</span> <a href="https://ollama.ai/download" target="_blank" style="color:var(--ac)">Download from ollama.ai</a>, then: <code class="code">ollama pull llama3.2</code>';
+    }
+  }
 }
 
 /* ── CHAT PAGE BUILDER ── */
@@ -978,13 +1031,14 @@ const pageOutputConv = {
 };
 
 /* ── GENERIC PROVIDER PAGE BUILDER ── */
-function buildProviderPage({id, title, subtitle, lib, libBadge, mainPath, streamPath, extraTabs=[]}) {
+function buildProviderPage({id, title, subtitle, lib, libBadge, mainPath, streamPath, extraTabs=[], banner='', ollamaUid=''}) {
   const hasStream = !!streamPath;
   const allTabs = ['💬 Basic Chat', ...(hasStream?['🌊 Stream']:[] ), ...extraTabs.map(t=>t.label)];
 
   return {
     html: `
       <div class="page-header"><div class="page-title">${title}</div><div class="page-sub">${subtitle}</div></div>
+      ${banner}
       <div class="tabs">
         ${allTabs.map((t,i)=>`<button class="tab ${i===0?'on':''}" onclick="switchTab('${id}',${i})">${t}</button>`).join('')}
       </div>
@@ -1015,6 +1069,7 @@ function buildProviderPage({id, title, subtitle, lib, libBadge, mainPath, stream
       ${extraTabs.map(t=>t.html(id)).join('')}
     `,
     init() {
+      if(ollamaUid) checkOllama(ollamaUid);
       // Basic chat
       const btn=$(`#cs-${id}`), inp=$(`#ci-${id}`);
       const send=async()=>{
@@ -1025,7 +1080,11 @@ function buildProviderPage({id, title, subtitle, lib, libBadge, mainPath, stream
           const d=await apiPost(mainPath,{message:msg});
           const content=d.response||d.result||JSON.stringify(d);
           S.chats[id].push({role:'ai',content,meta:{library:d.library||lib,provider:d.provider||'',model:d.model||''}});
-        } catch(e){ S.chats[id].push({role:'error',content:'Error: '+e.message}); toast(e.message,'err'); }
+        } catch(e){
+          const isOll = ollamaUid && (e.message.includes('500')||e.message.toLowerCase().includes('connection')||e.message.includes('11434'));
+          const errMsg = isOll ? '🦙 Ollama is not running. Click "Check Status" above to see setup steps.' : 'Error: '+e.message;
+          S.chats[id].push({role:'error',content:errMsg}); toast(isOll?'Ollama not running — see setup guide':e.message,'err');
+        }
         btn.disabled=false; renderChat(id);
       };
       btn.onclick=send;
@@ -1074,6 +1133,7 @@ const pageSaiOllama = buildProviderPage({
   id:'sai-ollama', title:'🦙 Spring AI — Ollama', lib:'Spring AI',
   subtitle:'Local inference · No API key needed · Requires Ollama running at localhost:11434',
   mainPath:'/api/springai/ollama/chat', streamPath:'/api/springai/ollama/stream',
+  banner: ollamaSetupBanner('sai-ol'), ollamaUid:'sai-ol',
   extraTabs:[{
     label:'💬 With System Prompt',
     html:id=>`<div data-panel="${id}" class="tab-panel">
@@ -1233,6 +1293,7 @@ const pageLc4jOllama = buildProviderPage({
   id:'lc4j-ollama', title:'🦙 LangChain4j — Ollama', lib:'LangChain4j',
   subtitle:'Local inference via LangChain4j · No API key needed',
   mainPath:'/api/langchain4j/ollama/chat', streamPath:'/api/langchain4j/ollama/stream',
+  banner: ollamaSetupBanner('lc4j-ol'), ollamaUid:'lc4j-ol',
   extraTabs:[{
     label:'🤖 AiServices',
     html:id=>`<div data-panel="${id}" class="tab-panel">
@@ -1466,10 +1527,7 @@ const pageFreeApis = {
 
     <!-- ── TAB 1: Ollama Spring AI ── -->
     <div data-panel="fa" class="tab-panel">
-      <div style="background:rgba(188,140,255,.07);border:1px solid rgba(188,140,255,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--t2);margin-bottom:16px">
-        <strong style="color:var(--pu)">🦙 Local inference — no API key.</strong>
-        Requires <a href="https://ollama.ai" target="_blank" style="color:var(--pu)">Ollama</a> running at <code class="code">localhost:11434</code> with <code class="code">llama3.2</code> pulled (<code class="code">ollama pull llama3.2</code>).
-      </div>
+      ${ollamaSetupBanner('fa-ol')}
 
       <div class="tabs" style="margin-bottom:14px">
         <button class="tab on" onclick="switchTab('fa-ol',0)">💬 Chat</button>
@@ -1509,10 +1567,7 @@ const pageFreeApis = {
 
     <!-- ── TAB 2: Ollama LangChain4j ── -->
     <div data-panel="fa" class="tab-panel">
-      <div style="background:rgba(188,140,255,.07);border:1px solid rgba(188,140,255,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--t2);margin-bottom:16px">
-        <strong style="color:var(--pu)">🦙 LangChain4j + Ollama — no API key.</strong>
-        Same local model, different framework. Demonstrates LangChain4j's <code class="code">ChatLanguageModel</code> and <code class="code">AiServices</code> interfaces.
-      </div>
+      ${ollamaSetupBanner('fa-lc')}
 
       <div class="tabs" style="margin-bottom:14px">
         <button class="tab on" onclick="switchTab('fa-lc',0)">💬 Direct Chat</button>
@@ -1608,6 +1663,8 @@ const pageFreeApis = {
     go('fa-dl','fa-dl-o',()=>apiGet('/api/tools/directory?path='+encodeURIComponent($('#fa-dl-p').value)));
 
     // Ollama Spring AI — chat
+    checkOllama('fa-ol'); checkOllama('fa-lc');
+    const ollamaErr=e=>{ const m=e.message,isOll=m.includes('500')||m.toLowerCase().includes('connection')||m.includes('11434'); return {isOll,msg:isOll?'🦙 Ollama is not running. Click "Check Status" above to see setup steps.':m}; };
     const mkSend=(chatId,path,metaLib)=>{
       const btn=$('#cs-'+chatId), inp=$('#ci-'+chatId);
       if(!btn||!inp) return;
@@ -1618,7 +1675,7 @@ const pageFreeApis = {
         try {
           const d=await apiPost(path,{message:msg});
           S.chats[chatId].push({role:'ai',content:d.response||JSON.stringify(d),meta:{library:metaLib,provider:'Ollama'}});
-        } catch(e){ S.chats[chatId].push({role:'error',content:e.message}); toast(e.message,'err'); }
+        } catch(e){ const {isOll,msg:em}=ollamaErr(e); S.chats[chatId].push({role:'error',content:em}); toast(isOll?'Ollama not running — see setup guide':em,'err'); }
         btn.disabled=false; renderChat(chatId);
       };
       btn.onclick=send;
@@ -1637,14 +1694,14 @@ const pageFreeApis = {
     $('#fa-ol-sb2').onclick=async()=>{
       const btn=$('#fa-ol-sb2'); btn.disabled=true;
       try { const d=await apiPost('/api/springai/ollama/chat/with-system',{system:$('#fa-ol-sys').value,message:$('#fa-ol-sm2').value}); $('#fa-ol-out2').innerHTML=respBox(d,[badge('Spring AI','b-green'),badge('Ollama Local','b-purple')]); }
-      catch(e){toast(e.message,'err');} btn.disabled=false;
+      catch(e){const {isOll,msg}=ollamaErr(e);toast(isOll?'Ollama not running — see setup guide':msg,'err');} btn.disabled=false;
     };
 
     // AiServices — Ollama LC4j
     $('#fa-lc-ab').onclick=async()=>{
       const btn=$('#fa-lc-ab'); btn.disabled=true;
       try { const d=await apiPost('/api/langchain4j/ollama/ai-service',{message:$('#fa-lc-ai').value}); $('#fa-lc-ao').innerHTML=respBox(d,[badge('LangChain4j','b-purple'),badge('Ollama Local','b-purple'),badge('AiServices','b-blue')]); }
-      catch(e){toast(e.message,'err');} btn.disabled=false;
+      catch(e){const {isOll,msg}=ollamaErr(e);toast(isOll?'Ollama not running — see setup guide':msg,'err');} btn.disabled=false;
     };
   }
 };
